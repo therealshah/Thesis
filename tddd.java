@@ -21,12 +21,12 @@ public class tddd{
 	//private String directory = "html1/";
 	//private static String directory = "files/";
 	//private String directory = "javabook/";
-	//private String directory = "emacs/"; // this is the versioned set for emacs
+	private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "ny/";
-	private static String directory = "gcc/";
+	//private static String directory = "gcc/";
 	private static int window;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -56,8 +56,8 @@ public class tddd{
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
-			Long minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
-			Long maxBoundary = new Long(4*i); // we will set this as the maximum boundary
+			Long minBoundary  = new Long(2*i); // we will set the mod value as the minimum boundary
+			Long maxBoundary = new Long(8*i); // we will set this as the maximum boundary
 			divisor1 = new Long(i); // this will be used to mod the results
 			divisor2 = new Long(i/2); // the backup divisor is half the original divisor
 			System.out.print( i+" " + i/2 + " ");
@@ -94,7 +94,6 @@ public class tddd{
 				Then we will hash the next document and see how much coverage we get (how many matches we get)
 			--------------------------------------------------------------------------------------*/
 				File file = null;
-				InputStream is;
 				boolean first = true; // this will be used to ck if it's the first file or not
 				ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 				for (String fileName: fileList)
@@ -159,7 +158,7 @@ public class tddd{
 			5. The remainder we are looking for
 			6/7. min/max boundaries
 
-		-- We are simply finding the boundaries of the file using karbRabin and simply storing them. Nothing more!
+		-- We are simply choping up the first file
 	-------------------------------------------------------------------------------------------------------- */
 	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long remainder
 		,Long minBoundary,Long maxBoundary){
@@ -203,7 +202,7 @@ public class tddd{
 			    else
 			    	point = i; // else this current value of i is the breakpoint
 
-			    // Hash all the values in the range (documentStart,current(i))
+			    // Hash all the values in the range (documentStart,point
 				// Remember we only want to hash the original VALUES from the array that contains the original
 				// content of the file. Not the hash values in the md5Hash Array
 				for (int j = documentStart; j <= point;++j){
