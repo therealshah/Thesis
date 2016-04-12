@@ -44,19 +44,108 @@ public class Winnowing{
 	// used for debugging
 	//PrintWriter writer;
 
-	public static void main(String [] args) throws IOException, Exception
- 	{
-		driverRun();
+	public static void main(String [] args) throws IOException, Exception{
+ 		readFile(directory); // read the file
+		//driverRun();
+		getBlockFrequency(); // this generates all the block sizes for winnowing along with there frequencies
 			//System.out.println("TESTIBG")
 	
 	}
 
-	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		readFile(directory);
-		//test();// test the code
 
-		Scanner in = new Scanner(System.in);
+	// this method basically will chop up the blocks and get their frequencies
+	private static void getBlockFrequency() throws Exception{
+		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
+		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		int start = 0; // start of the sliding window
+		window = 12;
+		int end = start + window - 1; // ending boundary
+		int localBoundary = 10;
+		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
+		// now output the block sizes, along with there frequencies and probilities
+		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+			// output the block freq
+			double prob = (double)tuple.getValue() / (double)totalBlocks;
+			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		}
+	}
+
+	/* -------------------------------------------------------------------------------------------------------
+This method:
+	--	Takes in three paramters:
+		1. array - this is the byte array that actually holds the document contents
+		2. md5Hases - holds the entire hash values of the document
+		3. localboundary - used to keep track of how the 2min chooses it boundaries
+		4. blockFreq - Store the block sizes, along with there frequencies
+		5. return type - returns the total number of block chunks
+
+	-- We are simply finding how the document is chopped up using this winnowing
+-------------------------------------------------------------------------------------------------------- */
+	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes, int localBoundry,HashMap<Integer,Integer> blockFreq ){
+		int start = 0; // starting point
+		int current = localBoundry;// compare all the values at and before this one
+		int documentStart = 0; // used to keep track of where the boundaries are
+		boolean match = false; // used to ck if we encountered a match
+		int counter = 0; // count the total num of blocks
+		// loop through until this current equals the end
+		while (current<md5Hashes.size())
+		{ 
+			for (int i = start; i <= current; ++i)
+			{		
+				/*-----------------------------------------------------------------------------
+					We have reached the end. Meaning all the values within the range 
+					(documentStart,Current) is a boundary
+				--------------------------------------------------------------------------------*/
+				if (i == current)
+				{
+					//System.out.println("in here");
+
+					int size = current - documentStart + 1; // this is the size of this block freq
+					if (blockFreq.get(size) == null){ // if not in there, then simply store it}
+						blockFreq.put(size,1); // simply insert the chunks in the document
+						//System.out.println("in here");
+					}
+					else // increment it's integer count
+						blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+					counter++; // increment the block count
+					documentStart = current + 1;// set this as the beginning of the new boundary
+					break; // break out of the for loop
+				}						
+				// compare this current with all the values that are (current postition (+/-)localboundaries)
+				// CompareTo returns
+					// >0 if greater
+					// <0 if less than
+					// 0 if equal
+					// break if this isnt the smallest one
+				else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+					break; // we will break if the value at the current index is not a local minima
+				
+			
+			}			
+			start++;
+			current++;						
+		} // end of the while loop
+
+		// -------------------------------------------------------------------------------------------
+		//  we are missing the last boundary, so hash that last value
+		//	We will also check against our values of the strings we already have, and if we encountered this 
+		//	already, then we will simply increment the counter, otherwise we will insert it in the hashtable
+		//	and increase our miss counter
+		//----------------------------------------------------------------------------------------------
+
+		int size = array.length - documentStart;
+		if (blockFreq.get(size) == null) // if not in there, then simply store it
+			blockFreq.put(size,1); // simply insert the chunks in the document
+		else // increment it's integer count
+			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+		return ++counter;
+	} // end of the method
+
+	private static void driverRun() throws IOException, Exception{
+
 		for (int i = 10;i<=200;i+=10)
 		{
 			//System.out.print("Enter localBoundry:");
@@ -94,8 +183,7 @@ public class Winnowing{
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes() throws IOException,Exception
-	{
+	private static void runBytes() throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
@@ -241,7 +329,6 @@ This method:
 						String hash = hashString(builder.toString(),"MD5");
 		 				matches.put(hash,1); // simply insert the chunks in the document
 	 				}	
-
 	} // end of the method
 
 
@@ -330,7 +417,7 @@ This method:
 
 
 
-/*-------------------------------------------------------------------------------------------------------------------------*/
+	/*-------------------------------------------------------------------------------------------------------------------------*/
 	// THIS IS THE FILE INPUT/OUTPUT. Also the md5 hashing method
 
 
@@ -339,28 +426,11 @@ This method:
 		-- This function basically reads the file ( which is stored in the scanner) and reads it into the list
 		-- All the white spaces are ommitted 
 
-	-----------------------------------------------------------------------*/
-	private static void readFile(Scanner in, ArrayList<String> list){
-
-		while (in.hasNext()){
-			String [] arr = in.nextLine().replaceAll("\\s+"," ").split(" "); // basically read the string, replace all whitespaces and split by each word
-			for (String s: arr)
-				if (!s.isEmpty())
-					list.add(s); // only add it to the list if it's not empty
-		}
-
-		// testing purposes
-		// for (String s: list)
-		// 	System.out.println(s);
-	}
-
-
 /*
 * reads all the files within this folder
 * @param folderName - This is the foldername that we will read all the files from
 */
-	private static void readFile(String folderName)
-	{
+	private static void readFile(String folderName){
 		//File folder = new File(directory + folderName); //only needed for HTML directories
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
@@ -381,8 +451,7 @@ This method:
 /*
 * Finds all the directories that are in the folder ( these folders contain the actual html documents)
 */
-	private static void readDir()
-	{
+	private static void readDir(){
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
 		folderList.clear(); // clear the list of directories
@@ -396,7 +465,6 @@ This method:
 			}
 				
 		}
-
 	}
 
 
@@ -405,8 +473,7 @@ This method:
 		// computes the md5
 	// originally takes a string
 	// we will just pass in the bytearray
-	private static String hashString(String message, String algorithm) 
-    {
+	private static String hashString(String message, String algorithm) {
  
 	    try 
 	    {
@@ -423,34 +490,8 @@ This method:
 		}
 	}
 
-	// computes the md5
-	// originally takes a string
-	// we will just pass in the bytearray
-	private static String hashString(byte [] message, String algorithm, int start, int end) 
-    {
- 
-	    try 
-	    {
-	    	byte [] arr = new byte [end - start+1];
-	    	int i = 0;
-	    	while (start <= end)
-	    		arr[i++] = message[start++];
-	    	//System.out.println(arr.length + " " + end + " " + start);
 
-	        MessageDigest digest = MessageDigest.getInstance(algorithm);
-	        //byte[] hashedBytes = digest.digest(message.getBytes("UTF-8"));
-	        byte [] hashedBytes = digest.digest(arr);
-	 
-	        return convertByteArrayToHexString(hashedBytes);
-	    } 
-	    catch (Exception ex) 
-	    {
-	        return null;
-		}
-	}
-
-	private static String convertByteArrayToHexString(byte[] arrayBytes) 
-	{
+	private static String convertByteArrayToHexString(byte[] arrayBytes) {
 	    StringBuffer stringBuffer = new StringBuffer();
 	    for (int i = 0; i < arrayBytes.length; i++) {
 	        stringBuffer.append(Integer.toString((arrayBytes[i] & 0xff) + 0x100, 16)

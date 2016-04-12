@@ -19,14 +19,14 @@ public class ContentPartitioning2{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private static String directory = "emacs/"; // this is the versioned set for emacs
+	private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
 	//private static String directory = "files/";
 	//private static String directory = "javabook/";
 	//private static String directory = "gcc/";
-	private static String directory = "htmltar/";
+	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
 	
 	// get the ratio of the coverage over the total size
@@ -40,16 +40,119 @@ public class ContentPartitioning2{
 
 	private static int numHashBoundariesAtEnd = 0; // used to keep track of how many times we went to the end
 	private static int numHashBoundariesAtEndSecondTime = 0;
+	private static Long minBoundary;
 
 	// used for debugging
 	//PrintWriter writer;
 
 	public static void main(String [] args) throws IOException, Exception
  	{
+ 		readFile(directory);
 		driverRun();
+		//getBlockFrequency();
 			//System.out.println("TESTIBG")
-	
 	}
+
+	// this method basically will chop up the blocks and get their frequencies
+	private static void getBlockFrequency() throws Exception{
+		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
+		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		int start = 0; // start of the sliding window
+		window = 12;
+		int end = start + window - 1; // ending boundary
+		int localBoundary = 500;
+		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
+		// now output the block sizes, along with there frequencies and probilities
+		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+			// output the block freq
+			double prob = (double)tuple.getValue() / (double)totalBlocks;
+			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		}
+	}
+
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+	--	Takes in three paramters:
+		1. array - this is the byte array that actually holds the document contents
+		2. md5Hases - holds the entire hash values of the document
+		3. localboundary - used to keep track of how the 2min chooses it boundaries
+
+	-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
+	-------------------------------------------------------------------------------------------------------- */
+	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes, int localBoundary,HashMap<Integer,Integer> blockFreq){
+		int start = 0; // starting point
+		//System.out.println("TESTING" + localBoundary);
+		int counter = 0; // count the number of blocks we have
+		int current = localBoundary;// has to be atlead here to be the local minima
+		int end  = localBoundary *2;  // this is the end of the boundary
+		int documentStart = 0; // used to keep track of where the boundaries start from
+		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
+		/*--------------------------------------------------
+			-- Now we run the window over and compute the value
+			-- in each window and store in hash table
+		----------------------------------------------------*/
+		while (end<md5Hashes.size()) // loop through till we hit the end of the array
+		{ 
+			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
+			{							
+				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
+					++i; // we don't wanna compare withourselves		
+				// CompareTo returns
+					// >0 if greater
+					// <0 if less than
+					// 0 if equal
+				// 	// break if this isnt the smallest one
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+					break; // we will break if the value at the current index is not a local minima
+				/*-----------------------------------------------------------------------------
+					We have reached the end. Meaning all the values within the range 
+					(documentStart,Current) is a boundary
+				--------------------------------------------------------------------------------*/
+				if (i == end)
+				{
+					int size = current - documentStart + 1; // this is the size of this block freq
+					//System.out.println(size);
+					if (blockFreq.get(size) == null){ // if not in there, then simply store it}
+						blockFreq.put(size,1); // simply insert the chunks in the document
+						//System.out.println("in here");
+					}
+					else // increment it's integer count
+						blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+					counter++; // increment the block count
+					documentStart = current + 1;// set this as the beginning of the new boundary
+					current = end+ 1; // this is where we start finding the new local minima
+					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
+					end = current + localBoundary; // this is the new end of the hash boundary
+					match = true; // so we don't increment our window values
+					break; // break out of the for loop
+				}
+			}			
+			// go to the next window only if we didnt find a match
+			// because if we did find a boundary, we would automatically go to the next window
+			if (!match){
+				start++;
+				current++;
+				end++;
+			}
+			match = false; // reset this match								
+		} // end of the while loop
+
+		// -------------------------------------------------------------------------------------------
+		//  we are missing the last boundary, so hash that last value
+		//	We will also check against our values of the strings we already have, and if we encountered this 
+		//	already, then we will simply increment the counter, otherwise we will insert it in the hashtable
+		//	and increase our miss counter
+		//----------------------------------------------------------------------------------------------
+		int size = array.length - documentStart;
+		if (blockFreq.get(size) == null) // if not in there, then simply store it
+			blockFreq.put(size,1); // simply insert the chunks in the document
+		else // increment it's integer count
+			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+		return ++counter;
+	} // end of the method
 
 	private static void test() throws IOException,Exception{
 		String file1 = fileList.get(0);
@@ -69,15 +172,16 @@ public class ContentPartitioning2{
 
 	private static void driverRun() throws IOException, Exception{
 		//readDir(); // directories dont change
-		readFile(directory);
+		// readFile(directory);
 		//test();// test the code
-		for (int i = 10;i<=200;i+=10)
+		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
 			
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
+			minBoundary = new Long(2*i);
 			localBoundry = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -110,8 +214,7 @@ public class ContentPartitioning2{
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes() throws IOException,Exception
-	{
+	private static void runBytes() throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
@@ -127,6 +230,7 @@ public class ContentPartitioning2{
 
 					// read the file
 					byte [] array = Files.readAllBytes(p); // read the file in bytes
+					//System.out.println(array.length);
 					//System.out.println(fileName + "  " + array.length);
 					int start = 0; // start of the sliding window
 					int end = start + window - 1; // ending boundary
@@ -151,17 +255,17 @@ public class ContentPartitioning2{
 	} // end of the function
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	-- Takes in four params: 
-			1. array - this is the byte array that actually holds the document contents
-			2. md5Hashes - will store the hash values of the entire document hashed
-			3. Start - starting point of the hash window (most likely 0)
-			4. End - ending point of the hash window 
-	-- We are hashing the while document here
-	-- We hash the document using a sliding window
-	-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
--------------------------------------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		-- Takes in four params: 
+				1. array - this is the byte array that actually holds the document contents
+				2. md5Hashes - will store the hash values of the entire document hashed
+				3. Start - starting point of the hash window (most likely 0)
+				4. End - ending point of the hash window 
+		-- We are hashing the while document here
+		-- We hash the document using a sliding window
+		-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
+	-------------------------------------------------------------------------------------------------------- */
 	private static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
 
 		StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
@@ -180,15 +284,15 @@ This method:
 		}
 	}
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	--	Takes in three paramters:
-		1. array - this is the byte array that actually holds the document contents
-		2. md5Hases - holds the entire hash values of the document
-		3. localboundary - used to keep track of how the 2min chooses it boundaries
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		--	Takes in three paramters:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. localboundary - used to keep track of how the 2min chooses it boundaries
 
-	-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
--------------------------------------------------------------------------------------------------------- */
+		-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
+	-------------------------------------------------------------------------------------------------------- */
 	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 		int start = 0; // starting point
 		//System.out.println("TESTING" + localBoundary);
@@ -204,57 +308,60 @@ This method:
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
-			{							
-				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
-					++i; // we don't wanna compare withourselves		
-				// CompareTo returns
-					// >0 if greater
-					// <0 if less than
-					// 0 if equal
-				// 	// break if this isnt the smallest one
-				//if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+			if ((current - documentStart + 1) >= minBoundary){
+				for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
+				{							
+					if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
+						++i; // we don't wanna compare withourselves		
+					// CompareTo returns
+						// >0 if greater
+						// <0 if less than
+						// 0 if equal
+					// 	// break if this isnt the smallest one
+					//if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
 
-				// BigInteger curr = new BigInteger(md5Hashes.get(current),16); // get integer val
-				// BigInteger prev = new BigInteger(md5Hashes.get(i),16); // get the integer val
-				// if (!(curr.compareTo(prev) < 0)) 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
-					break; // we will break if the value at the current index is not a local minima
-				// if (maximaChoice == -1){ // we have not decided yet
-				// 	if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // if less than, use local minima
-				// 		maximaChoice = 0; // 
-				// 	else if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0)) // if greater than, use local max
-				// 		maximaChoice = 1; // 
-				// 	else
-				// 		break;
-				// }
-				// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0) && maximaChoice==0)
-				// 		break; // if it's not less than and we were looking for a local minima
-				// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0) && maximaChoice==1)
-				// 		break; // if it's not greater than and we were looking for a local max
-				/*-----------------------------------------------------------------------------
-					We have reached the end. Meaning all the values within the range 
-					(documentStart,Current) is a boundary
-				--------------------------------------------------------------------------------*/
-				if (i == end)
-				{
-					// Hash all the values in the range (documentStart,current)
-					// Remember we only want to hash the original VALUES from the array that contains the original
-					// content of the file. Not the hash values in the md5Hash Array
-					for (int j = documentStart; j <= current;++j){
-						builder.append(array[j]); 
+					// BigInteger curr = new BigInteger(md5Hashes.get(current),16); // get integer val
+					// BigInteger prev = new BigInteger(md5Hashes.get(i),16); // get the integer val
+					// if (!(curr.compareTo(prev) < 0)) 
+					if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+						break; // we will break if the value at the current index is not a local minima
+					// if (maximaChoice == -1){ // we have not decided yet
+					// 	if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // if less than, use local minima
+					// 		maximaChoice = 0; // 
+					// 	else if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0)) // if greater than, use local max
+					// 		maximaChoice = 1; // 
+					// 	else
+					// 		break;
+					// }
+					// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0) && maximaChoice==0)
+					// 		break; // if it's not less than and we were looking for a local minima
+					// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0) && maximaChoice==1)
+					// 		break; // if it's not greater than and we were looking for a local max
+					/*-----------------------------------------------------------------------------
+						We have reached the end. Meaning all the values within the range 
+						(documentStart,Current) is a boundary
+					--------------------------------------------------------------------------------*/
+					if (i == end)
+					{
+						// Hash all the values in the range (documentStart,current)
+						// Remember we only want to hash the original VALUES from the array that contains the original
+						// content of the file. Not the hash values in the md5Hash Array
+						for (int j = documentStart; j <= current;++j){
+							builder.append(array[j]); 
+						}
+						String hash = hashString(builder.toString(),"MD5"); // hash this boundary
+						//System.out.println(current-documentStart + 1);
+						matches.put(hash,1); // simply insert the chunks in the hashtable
+						documentStart = current + 1;// set this as the beginning of the new boundary
+						current = end+ 1; // this is where we start finding the new local minima
+						start = documentStart; // we will start comparing from here!, since everything before this is a boundary
+						end = current + localBoundry; // this is the new end of the hash boundary
+						builder.setLength(0); // reset the stringbuilder for the next round
+						match = true; // so we don't increment our window values
+						break; // break out of the for loop
 					}
-					String hash = hashString(builder.toString(),"MD5"); // hash this boundary
-					matches.put(hash,1); // simply insert the chunks in the hashtable
-					documentStart = current + 1;// set this as the beginning of the new boundary
-					current = end+ 1; // this is where we start finding the new local minima
-					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
-					end = current + localBoundry; // this is the new end of the hash boundary
-					builder.setLength(0); // reset the stringbuilder for the next round
-					match = true; // so we don't increment our window values
-					break; // break out of the for loop
-				}
-			}			
+				}			
+			}
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
@@ -305,7 +412,7 @@ This method:
 	-- already seen this
 	-- we also keep track of a counter and misscounter, which we use to compute the ratio
 -------------------------------------------------------------------------------------------------------- */
-	private static void run2min(byte [] array, ArrayList<Long> md5Hashes, int localBoundry){
+	private static void run2min(byte [] array, ArrayList<Long> md5Hashes, int localBoundry) throws Exception{
 		int start = 0; // starting point
 		int current = localBoundry;// has to be atlead here to be the local minima
 		int end  = localBoundry *2;  // this is the end of the window
@@ -320,61 +427,66 @@ This method:
 		----------------------------------------------*/
 		while (end<md5Hashes.size())
 		{ 
-			for (int i = start; i <= end; ++i)
-			{							
-				if (i==current) // we don't want to compare with ourselves
-					++i;	
+			if ((current - documentStart + 1) >= minBoundary) {
+				for (int i = start; i <= end; ++i)
+				{							
+					if (i==current) // we don't want to compare with ourselves
+						++i;	
 
-				// compare this current with all the values that are (current postition (+/-)localboundaries)
-				// BigInteger curr = new BigInteger(md5Hashes.get(current),16);
-				// BigInteger prev = new BigInteger(md5Hashes.get(i),16);
-				//if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
-				//if (!(curr.compareTo(prev) < 0)) 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
-					break; // we will break if the value at the current index is not a local minima
-				// if (maximaChoice == -1){ // we have not decided yet
-				// 	if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // if less than, use local minima
-				// 		maximaChoice = 0; // 
-				// 	else if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0)) // if greater than, use local max
-				// 		maximaChoice = 1; // 
-				// 	else
-				// 		break;
-				// }
-				// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0) && maximaChoice==0)
-				// 		break; // if it's not less than and we were looking for a local minima
-				// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0) && maximaChoice==1)
-				// 		break; // if it's not greater than and we were looking for a local max
-				
-				/*-----------------------------------------------------------------------------
-					We have reached the end. Meaning all the values within the range 
-					(documentStart,Current) is a boundary
-				--------------------------------------------------------------------------------*/
-				 if (i == end)
-				{
+					// compare this current with all the values that are (current postition (+/-)localboundaries)
+					// BigInteger curr = new BigInteger(md5Hashes.get(current),16);
+					// BigInteger prev = new BigInteger(md5Hashes.get(i),16);
+					//if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+					//if (!(curr.compareTo(prev) < 0)) 
+					if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+						break; // we will break if the value at the current index is not a local minima
+					// if (maximaChoice == -1){ // we have not decided yet
+					// 	if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // if less than, use local minima
+					// 		maximaChoice = 0; // 
+					// 	else if ((md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0)) // if greater than, use local max
+					// 		maximaChoice = 1; // 
+					// 	else
+					// 		break;
+					// }
+					// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0) && maximaChoice==0)
+					// 		break; // if it's not less than and we were looking for a local minima
+					// else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) > 0) && maximaChoice==1)
+					// 		break; // if it's not greater than and we were looking for a local max
+					
+					/*-----------------------------------------------------------------------------
+						We have reached the end. Meaning all the values within the range 
+						(documentStart,Current) is a boundary
+					--------------------------------------------------------------------------------*/
+					 if (i == end)
+					{
 
-					// Hash all the values in the range (documentStart,current)
-					// Remember we only want to hash the original VALUES from the array that contains the original
-					// content of the file. Not the hash values in the md5Hash Array
-					for (int j = documentStart; j <= current;++j){
-						builder.append(array[j]); 
+						// Hash all the values in the range (documentStart,current)
+						// Remember we only want to hash the original VALUES from the array that contains the original
+						// content of the file. Not the hash values in the md5Hash Array
+						for (int j = documentStart; j <= current;++j){
+							builder.append(array[j]); 
+						}
+						String hash = hashString(builder.toString(),"MD5"); // hash this boundary
+
+						// Check if this value exists in the hash table
+						// If it does, we will increment the coverage count
+						if (matches.get(hash) != null){
+							// byte [] arr = builder.toString().getBytes("UTF-8");
+							// System.out.println(arr);
+							coverage+= current-documentStart+1; // this is how much we saved
+						}					
+
+						documentStart = current + 1;// set this as the beginning of the new boundary
+						current = end+ 1; // this is where we start finding the new local minima
+						start = documentStart; // we will start comparing from here!, since everything before this is a boundary
+						end = current + localBoundry; // this is the new boundary
+						builder.setLength(0); // reset the stringbuilder to get the next window
+						match = true; //  so we don't increment our window again
+						numOfPieces++; // increment the number of pieces we got
+						break; // break out of the for loop
 					}
-					String hash = hashString(builder.toString(),"MD5"); // hash this boundary
-
-					// Check if this value exists in the hash table
-					// If it does, we will increment the coverage count
-					if (matches.get(hash) != null)
-						coverage+= current-documentStart+1; // this is how much we saved					
-
-					documentStart = current + 1;// set this as the beginning of the new boundary
-					current = end+ 1; // this is where we start finding the new local minima
-					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
-					end = current + localBoundry; // this is the new boundary
-					builder.setLength(0); // reset the stringbuilder to get the next window
-					match = true; //  so we don't increment our window again
-					numOfPieces++; // increment the number of pieces we got
-					break; // break out of the for loop
-				}
-			}			
+				}	
+			}		
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
@@ -414,7 +526,7 @@ This method:
 
 
 /*-------------------------------------------------------------------------------------------------------------------------*/
-	// THIS IS THE FILE INPUT/OUTPUT. Also the md5 hashing method
+// Everything below is the code for reading the file and hashing the string
 
 
 
@@ -438,10 +550,10 @@ This method:
 	}
 
 
-/*
-* reads all the files within this folder
-* @param folderName - This is the foldername that we will read all the files from
-*/
+	/*
+	* reads all the files within this folder
+	* @param folderName - This is the foldername that we will read all the files from
+	*/
 	private static void readFile(String folderName)
 	{
 		//File folder = new File(directory + folderName); //only needed for HTML directories
@@ -461,9 +573,9 @@ This method:
 		}
 	}
 
-/*
-* Finds all the directories that are in the folder ( these folders contain the actual html documents)
-*/
+	/*
+	* Finds all the directories that are in the folder ( these folders contain the actual html documents)
+	*/
 	private static void readDir()
 	{
 		File folder = new File(directory);
