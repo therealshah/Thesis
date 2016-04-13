@@ -33,7 +33,7 @@ public class Winnowing{
 	//private static String directory = "gcc/";
 	//private static String directory = "sublime/";
 	private static int window;// window is size 3
-	private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
+	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
 
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
@@ -57,12 +57,13 @@ public class Winnowing{
 	private static void getBlockFrequency() throws Exception{
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		System.out.println(fileList.get(0));
 		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
 		byte [] array = Files.readAllBytes(p); // read the file into a byte array
 		int start = 0; // start of the sliding window
 		window = 12;
 		int end = start + window - 1; // ending boundary
-		int localBoundary = 10;
+		int localBoundary = 1000;
 		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
 		// now output the block sizes, along with there frequencies and probilities
@@ -84,9 +85,9 @@ This method:
 
 	-- We are simply finding how the document is chopped up using this winnowing
 -------------------------------------------------------------------------------------------------------- */
-	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes, int localBoundry,HashMap<Integer,Integer> blockFreq ){
+	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes, int localBoundary,HashMap<Integer,Integer> blockFreq ){
 		int start = 0; // starting point
-		int current = localBoundry;// compare all the values at and before this one
+		int current = localBoundary;// compare all the values at and before this one
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		int counter = 0; // count the total num of blocks
@@ -153,15 +154,15 @@ This method:
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			localBoundry = i;
+			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
 					-- Run the 2 min algorithm for all the way upto the value the user enters
 					-- We will use the local boundary for all the way up to the value the user entered
 		-------------------------------------------------------------------------------------------------*/
-			System.out.print( localBoundry+" ");
+			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
-			runBytes();
+			runBytes(localBoundary);
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -183,7 +184,7 @@ This method:
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes() throws IOException,Exception{
+	private static void runBytes(int localBoundary) throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
@@ -208,7 +209,7 @@ This method:
 			
 						//writer.println("\n\n");
 						//writer.println("================= Writing boundaries\n\n\n");
-						storeChunks(array,md5Hashes,localBoundry);
+						storeChunks(array,md5Hashes,localBoundary);
 						first = !first;
 						totalSize = 0;
 					}
@@ -219,7 +220,7 @@ This method:
 						//writer.println("\n\n");
 						//writer.println("================= Writing boundaries\n\n\n");
 						totalSize = array.length; // get the total size of the file
-						winnowing(array,md5Hashes,localBoundry);// here we run 2min, ck how similar the documents are to the one already in the system
+						winnowing(array,md5Hashes,localBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 						//writer.close();
 					}
 
@@ -270,9 +271,9 @@ This method:
 
 	-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
 -------------------------------------------------------------------------------------------------------- */
-	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundry){
+	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 					int start = 0; // starting point
-					int current = localBoundry;// compare all the values at and before this one
+					int current = localBoundary;// compare all the values at and before this one
 					int documentStart = 0; // used to keep track of where the boundaries are
 					boolean match = false; // used to ck if we encountered a match
 					StringBuilder builder = new StringBuilder(); // this is used to store the original document content
@@ -346,9 +347,9 @@ This method:
 	-- already seen this
 	-- we also keep track of a counter and misscounter, which we use to compute the ratio
 -------------------------------------------------------------------------------------------------------- */
-	private static void winnowing(byte [] array, ArrayList<Long> md5Hashes, int localBoundry){
+	private static void winnowing(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 					int start = 0; // starting point
-					int current = localBoundry;// this is the end of the boundary
+					int current = localBoundary;// this is the end of the boundary
 					int documentStart = 0; // used to keep track of where the boundaries are
 					boolean match = false; // used to ck if we encountered a match
 					StringBuilder builder = new StringBuilder(); // used to create the boundaries from the original file

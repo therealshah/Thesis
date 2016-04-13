@@ -19,9 +19,9 @@ public class tddd{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private static String directory = "files/";
+	private static String directory = "files/";
 	//private String directory = "javabook/";
-	private static String directory = "emacs/"; // this is the versioned set for emacs
+	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
@@ -39,25 +39,124 @@ public class tddd{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		tddd program = new tddd();
-		program.driverRun(); // driver for taking in inputs and running the 2min method
+		readFile(directory);
+		//driverRun(); // driver for taking in inputs and running the 2min method
 			//System.out.println("TESTIBG")
+		getBlockFrequency();
 	}
 
-	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		readFile(directory);
+	// this method basically will chop up the blocks and get their frequencies
+	private static void getBlockFrequency() throws Exception{
+		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
+		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		int start = 0; // start of the sliding window
+		window = 12;
+		int end = start + window - 1; // ending boundary
+		int i = 100;
+		Long divisor1 =  new Long(i);
+		Long divisor2 = new Long(i/2);
+		Long remainder = new Long(7);
+		Long minBoundary = new Long(2*i);
+		Long maxBoundary = new Long(8*i);
+		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+		int totalBlocks = chopDocument(array,md5Hashes,divisor1,divisor2,remainder,minBoundary,maxBoundary,blockFreq);
+		// now output the block sizes, along with there frequencies and probilities
+		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+			// output the block freq
+			double prob = (double)tuple.getValue() / (double)totalBlocks;
+			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		}
+	}
 
-		Scanner in = new Scanner(System.in);
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		--	Takes in three paramters:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. Divisor1/Divisor2 - main and back up divisor
+			5. The remainder we are looking for
+			6/7. min/max boundaries
+			8. blockFreq - store the block sizes and how many time's they occur
+
+		-- We are simply choping up the first file
+	-------------------------------------------------------------------------------------------------------- */
+	private static int chopDocument(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long remainder
+		,Long minBoundary,Long maxBoundary,HashMap<Integer,Integer> blockFreq){
+
+		int documentStart = 0; // used to keep track of where the boundaries are
+		int backUpBreakPoint = -1; // used to store the backup breakpoint
+		int counter = 0;
+		// loop through all the values in the document
+		for (int i = 0; i < md5Hashes.size();++i)
+		{ 	
+			if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
+				continue;
+			/*-----------------------------------------------------------------
+				- If the mod of this equals the modvalue we defined, then 
+				- this is a boundary
+			------------------------------------------------------------------*/ 
+
+			if (md5Hashes.get(i)%divisor1 == remainder) // ck if this equals the mod value
+			{
+
+				int size = i - documentStart + 1; // get the size
+				if (blockFreq.get(size) == null) // if not in there, then simply store it
+						blockFreq.put(size,1); 
+				else // increment it's integer count
+					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+				counter++; // increment the block count
+				documentStart = i + 1;// set this as the beginning of the new boundary
+				backUpBreakPoint = -1; // reset this
+				
+			}		
+			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
+				backUpBreakPoint = i; // this is the backup breakpoint
+			}
+			if ((i - documentStart + 1) >= maxBoundary ) { // we have reached the maximum
+				// ck if we have a backUpbreakpoint, if so set that as the point, otherwise the current value of i
+				int point = (backUpBreakPoint != -1)?backUpBreakPoint:i;
+				int size = point - documentStart + 1; //we start from the point
+				if (blockFreq.get(size) == null) // if not in there, then simply store it
+					blockFreq.put(size,1); 
+				else // increment it's integer count
+					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+				counter++; // increment the block count
+				documentStart = point + 1;// set this as the beginning of the new boundary
+				backUpBreakPoint = -1; // reset this
+				i = point + 1; // we start i from here again
+			}
+								
+		} // end of the for loop
+
+		// -------------------------------------------------------------------------------------------
+		//  we are missing the last boundary, so hash that last value
+		//	We will also check against our values of the strings we already have, and if we encountered this 
+		//	already, then we will simply increment the counter, otherwise we will insert it in the hashtable
+		//	and increase our miss counter
+		//----------------------------------------------------------------------------------------------
+		int size = array.length - documentStart; //we start from the point
+		if (blockFreq.get(size) == null) // if not in there, then simply store it
+			blockFreq.put(size,1); 
+		else // increment it's integer count
+			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+		return ++counter; // increment the block count
+	} // end of the method
+
+	private static void driverRun() throws IOException, Exception{
 		window = 12;
 		Long divisor1;
 		Long divisor2; // second mod value we will be using
 		Long remainder = new Long(7); // this is the remainder that we will be comparing with
+		Long minBoundary;
+		Long maxBoundary;
+		System.out.println("gcc");
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
-			Long minBoundary  = new Long(2*i); // we will set the mod value as the minimum boundary
-			Long maxBoundary = new Long(8*i); // we will set this as the maximum boundary
+			minBoundary  = new Long(2*i); // we will set the mod value as the minimum boundary
+			maxBoundary = new Long(8*i); // we will set this as the maximum boundary
 			divisor1 = new Long(i); // this will be used to mod the results
 			divisor2 = new Long(i/2); // the backup divisor is half the original divisor
 			System.out.print( i+" " + i/2 + " ");
@@ -170,7 +269,7 @@ public class tddd{
 		// loop through all the values in the document
 		for (int i = 0; i < md5Hashes.size();++i)
 		{ 	
-			if ((i - documentStart + 1) < minBoundary) //  if the size of this boundary is less than the min, continue looping
+			if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
 				continue;
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
@@ -299,7 +398,7 @@ public class tddd{
 				}
 				String hash = hashString(builder.toString(),"MD5");	// hash this boundary
 				if (matches.get(hash) != null) // ck if this boundary exists in the hash table
-					coverage+= i - documentStart + 1; // this is the amount of bytes we saved
+					coverage+= point - documentStart + 1; // this is the amount of bytes we saved
 				numOfPieces++; // increment the num of pieces
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
@@ -350,10 +449,10 @@ public class tddd{
 		}
 	}
 
-/*
-* Finds all the directories that are in the folder ( these folders contain the actual html documents)
-*/
-	private void readDir(){
+	/*
+	* Finds all the directories that are in the folder ( these folders contain the actual html documents)
+	*/
+	private static void readDir(){
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
 		folderList.clear(); // clear the list of directories

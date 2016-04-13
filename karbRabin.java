@@ -13,51 +13,114 @@ import java.util.zip.*;
 
 public class karbRabin{
 
-	private HashMap<String,Integer> matches = new HashMap<String,Integer>();
+	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 
 	// used to store the files in the list
-	private ArrayList<String> fileList = new ArrayList<String>(); 
-	private ArrayList<String> folderList = new ArrayList<String>();
+	private static ArrayList<String> fileList = new ArrayList<String>(); 
+	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private String directory = "files/";
+	private static String directory = "files/";
 	//private String directory = "javabook/";
 	//private String directory = "emacs/"; // this is the versioned set for emacs
-	private String directory = "htmltar/";
+	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "ny/";
 	//private String directory = "gcc/";
-	private int window;// window size will be fixed around 12
-	private int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
+	private static int window;// window size will be fixed around 12
+	private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
 
 	// get the ratio of the coverage over the total size
-	private double totalSize=0;
-	private double coverage=0;
-	private int numOfPieces=0;  // used to calculate block size
-
-
-	// These will be the mod values
-	// BigInteger mod;
-	// BigInteger modValue;
-	Long mod;
-	Long modValue;
+	private static double totalSize=0;
+	private static double coverage=0;
+	private static int numOfPieces=0;  // used to calculate block size
 
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		karbRabin program = new karbRabin();
-		program.driverRun(); // driver for taking in inputs and running the 2min method
+		
+		readFile(directory);
+		//driverRun(); // driver for taking in inputs and running the 2min method
+		getBlockFrequency();
 			//System.out.println("TESTIBG")
 	}
 
-	private void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		readFile(directory);
 
-		Scanner in = new Scanner(System.in);
+	// this method basically will chop up the blocks and get their frequencies
+	private static void getBlockFrequency() throws Exception{
+		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
+		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		int start = 0; // start of the sliding window
+		window = 12;
+		int end = start + window - 1; // ending boundary
+		Long divisor =  new Long(100);
+		Long remainder = new Long(7);
+		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+		int totalBlocks = chopDocument(array,md5Hashes,blockFreq,divisor,remainder);
+		// now output the block sizes, along with there frequencies and probilities
+		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+			// output the block freq
+			double prob = (double)tuple.getValue() / (double)totalBlocks;
+			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		}
+	}
+
+
+	/*-----------------------------------------------------------------------------------------------
+	This method:
+		--	@param:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. blockFreq - Store the block sizes, along with there frequencies
+			4. Divisor - the value we will be dividing by 
+			5. This determines if this is a boundary point for the docu
+			@return: - returns the total number of block chunks
+
+		-- We are simply finding how the document is chopped up using this winnowing
+	-------------------------------------------------------------------------------------------------------- */
+	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes,HashMap<Integer,Integer> blockFreq, Long divisor, Long remainder ){
+		int documentStart = 0; // used to keep track of where the boundaries are
+		boolean match = false; // used to ck if we encountered a match
+		int counter = 0;
+		// loop through all the values in the document
+		for (int i = 0; i < md5Hashes.size();++i)
+		{ 	
+			/*-----------------------------------------------------------------
+				- If the mod of this equals the modvalue we defined, then 
+				- this is a boundary
+			------------------------------------------------------------------*/ 
+			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
+			{
+
+				int size = i - documentStart + 1; // we only care about the size
+				if (blockFreq.get(size) == null) // if not in there, then simply store it
+						blockFreq.put(size,1); 
+				else // increment it's integer count
+					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+				counter++; // increment the block count
+				documentStart = i + 1;// set this as the beginning of the new boundary
+			}		
+								
+		} // end of the for loop
+
+		// get the last block size
+		int size = array.length - documentStart;
+		if (blockFreq.get(size) == null) // if not in there, then simply store it
+			blockFreq.put(size,1); 
+		else // increment it's integer count
+			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+		return ++counter;
+
+	} // end of the method
+
+
+	private static void driverRun() throws IOException, Exception{
 		window = 12;
 		//modValue = new BigInteger("7",10); // This is the remainder that we will be comparing with
-		modValue = new Long(7); // this is the remainder that we will be comparing with
+		Long remainder = new Long(7); // this is the remainder that we will be comparing with
+		Long divisor;
 		for (int i = 10;i<=200;i+=10)
 		{
 			//System.out.print("Enter localBoundry:");
@@ -68,9 +131,9 @@ public class karbRabin{
 				-- We will use the local boundary for all the way up to the value the user entered
 				-------------------------------------------------------------------------------------------------*/
 			//mod = new BigInteger(Integer.toString(i),10); // this will be used to mod the results
-			mod = new Long(i); // this will be used to mod the results
+			divisor = new Long(i); // this will be used to mod the results
 			System.out.print( i+" ");
-			runBytes(); // run the karb rabin algorithm
+			runBytes(divisor,remainder); // run the karb rabin algorithm
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -90,7 +153,7 @@ public class karbRabin{
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private void runBytes() throws IOException,Exception{
+	private static void runBytes(Long divisor,Long remainder) throws IOException,Exception{
 
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
@@ -111,31 +174,31 @@ public class karbRabin{
 					hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 					// if this is the first document, we will simply get the boundary chunks and store them
 					if (first){
-						storeChunks(array,md5Hashes);
+						storeChunks(array,md5Hashes,divisor,remainder);
 						first = !first;
 						totalSize = 0;
 					}
 					else{
 						totalSize = array.length; // get the length for this document
-						runKarbRabin(array,md5Hashes);// here we run 2min, ck how similar the documents are to the one already in the system
+						runKarbRabin(array,md5Hashes,divisor,remainder);// here we run 2min, ck how similar the documents are to the one already in the system
 					}
 					md5Hashes.clear(); // clear our md5hashes array									
 				} // end of the for ( that reads the files) loop				
 	} // end of the function
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	-- Takes in four params: 
-			1. array - this is the byte array that actually holds the document contents
-			2. md5Hashes - will store the hash values of the entire document hashed
-			3. Start - starting point of the hash window (most likely 0)
-			4. End - ending point of the hash window 
-	-- We are hashing the while document here
-	-- We hash the document using a sliding window
-	-- Since this is a byte Array, we will sum up the bytes using an int
--------------------------------------------------------------------------------------------------------- */
-	private void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		-- Takes in four params: 
+				1. array - this is the byte array that actually holds the document contents
+				2. md5Hashes - will store the hash values of the entire document hashed
+				3. Start - starting point of the hash window (most likely 0)
+				4. End - ending point of the hash window 
+		-- We are hashing the while document here
+		-- We hash the document using a sliding window
+		-- Since this is a byte Array, we will sum up the bytes using an int
+	-------------------------------------------------------------------------------------------------------- */
+	private static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
 
 		StringBuilder builder = new StringBuilder(); // used to hash the document
 		while (end < array.length)
@@ -154,15 +217,15 @@ This method:
 	}
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	--	Takes in three paramters:
-		1. array - this is the byte array that actually holds the document contents
-		2. md5Hases - holds the entire hash values of the document
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		--	Takes in three paramters:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
 
-	-- We are simply finding the boundaries of the file using karbRabin and simply storing them. Nothing more!
+		-- We are simply finding the boundaries of the file using karbRabin and simply storing them. Nothing more!
 -------------------------------------------------------------------------------------------------------- */
-	private void storeChunks(byte[] array, ArrayList<Long> md5Hashes){
+	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes,Long divisor,Long remainder){
 
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
@@ -174,7 +237,7 @@ This method:
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
 			------------------------------------------------------------------*/ 
-			if (md5Hashes.get(i)%mod == modValue) // ck if this equals the mod value
+			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
 			{
 				// Hash all the values in the range (documentStart,current(i))
 				// Remember we only want to hash the original VALUES from the array that contains the original
@@ -208,18 +271,18 @@ This method:
 
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	--	Takes in three paramters:
-		1. array - this is the byte array that actually holds the document contents
-		2. md5Hases - holds the entire hash values of the document
-		3. localboundary - used to keep track of how the 2min chooses it boundaries
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		--	Takes in three paramters:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. localboundary - used to keep track of how the 2min chooses it boundaries
 
-	-- We will start running the karb rabin algorithm
-	-- We will find the boundaries using mod values and once they equal the mod value we have stored
-	-- We will hash everything in that hash boundary and store it
--------------------------------------------------------------------------------------------------------- */
-	private void runKarbRabin(byte[] array, ArrayList<Long> md5Hashes){
+		-- We will start running the karb rabin algorithm
+		-- We will find the boundaries using mod values and once they equal the mod value we have stored
+		-- We will hash everything in that hash boundary and store it
+	-------------------------------------------------------------------------------------------------------- */
+	private static void runKarbRabin(byte[] array, ArrayList<Long> md5Hashes,Long divisor, Long remainder){
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		StringBuilder builder = new StringBuilder(); // used to hold the bytes
@@ -229,7 +292,7 @@ This method:
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
 			------------------------------------------------------------------*/ 
-			if (md5Hashes.get(i)%mod == modValue) // ck if this equals the mod value
+			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
 			{
 				// Hash all the values in the range (documentStart,current(i))
 				// Remember we only want to hash the original VALUES from the array that contains the original
@@ -270,7 +333,7 @@ This method:
 * reads all the files within this folder
 * @param folderName - This is the foldername that we will read all the files from
 */
-	private void readFile(String folderName){
+	private static void readFile(String folderName){
 		//File folder = new File(directory + folderName); //only needed for HTML directories
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
@@ -291,7 +354,7 @@ This method:
 /*
 * Finds all the directories that are in the folder ( these folders contain the actual html documents)
 */
-	private void readDir(){
+	private static void readDir(){
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
 		folderList.clear(); // clear the list of directories

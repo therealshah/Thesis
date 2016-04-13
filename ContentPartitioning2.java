@@ -19,11 +19,11 @@ public class ContentPartitioning2{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	private static String directory = "emacs/"; // this is the versioned set for emacs
+	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
-	//private static String directory = "files/";
+	private static String directory = "files/";
 	//private static String directory = "javabook/";
 	//private static String directory = "gcc/";
 	//private static String directory = "htmltar/";
@@ -35,7 +35,7 @@ public class ContentPartitioning2{
 	private static int numOfPieces=0;
 	private static int totalWindowPieces=0;
 	private static int window;// window is size 3
-	private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
+	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
 
 
 	private static int numHashBoundariesAtEnd = 0; // used to keep track of how many times we went to the end
@@ -48,8 +48,8 @@ public class ContentPartitioning2{
 	public static void main(String [] args) throws IOException, Exception
  	{
  		readFile(directory);
-		driverRun();
-		//getBlockFrequency();
+		//driverRun();
+		getBlockFrequency();
 			//System.out.println("TESTIBG")
 	}
 
@@ -57,12 +57,13 @@ public class ContentPartitioning2{
 	private static void getBlockFrequency() throws Exception{
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
+		System.out.println(fileList.get(0));
 		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
 		byte [] array = Files.readAllBytes(p); // read the file into a byte array
 		int start = 0; // start of the sliding window
 		window = 12;
 		int end = start + window - 1; // ending boundary
-		int localBoundary = 500;
+		int localBoundary = 1000;
 		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
 		// now output the block sizes, along with there frequencies and probilities
@@ -174,6 +175,7 @@ public class ContentPartitioning2{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
+		System.out.println("Emacs");
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
@@ -181,16 +183,16 @@ public class ContentPartitioning2{
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			minBoundary = new Long(2*i);
-			localBoundry = i;
+			minBoundary = new Long(3*i);
+			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
 					-- Run the 2 min algorithm for all the way upto the value the user enters
 					-- We will use the local boundary for all the way up to the value the user entered
 		-------------------------------------------------------------------------------------------------*/
-			System.out.print( localBoundry+" ");
+			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
-			runBytes();
+			runBytes(localBoundary);
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -214,7 +216,7 @@ public class ContentPartitioning2{
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes() throws IOException,Exception{
+	private static void runBytes(int localBoundary) throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
@@ -237,14 +239,14 @@ public class ContentPartitioning2{
 					hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 					// if this is the first document, we will simply get the boundary chunks and store them
 					if (first){
-						storeChunks(array,md5Hashes,localBoundry);
+						storeChunks(array,md5Hashes,localBoundary);
 						first = !first;
 						totalSize = 0;
 					}
 					else{
 
 						totalSize = array.length; // get the total size of the file
-						run2min(array,md5Hashes,localBoundry);// here we run 2min, ck how similar the documents are to the one already in the system
+						run2min(array,md5Hashes,localBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 					}
 
 					// empty out the md5 Hashes for reuse
@@ -297,7 +299,7 @@ public class ContentPartitioning2{
 		int start = 0; // starting point
 		//System.out.println("TESTING" + localBoundary);
 		int current = localBoundary;// has to be atlead here to be the local minima
-		int end  = localBoundry *2;  // this is the end of the boundary
+		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
 		int maximaChoice = -1; // used to determine whether to use local min or local max ( 0 for min, 1 for max)
 		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
@@ -355,7 +357,7 @@ public class ContentPartitioning2{
 						documentStart = current + 1;// set this as the beginning of the new boundary
 						current = end+ 1; // this is where we start finding the new local minima
 						start = documentStart; // we will start comparing from here!, since everything before this is a boundary
-						end = current + localBoundry; // this is the new end of the hash boundary
+						end = current + localBoundary; // this is the new end of the hash boundary
 						builder.setLength(0); // reset the stringbuilder for the next round
 						match = true; // so we don't increment our window values
 						break; // break out of the for loop
