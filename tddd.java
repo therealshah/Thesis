@@ -19,14 +19,14 @@ public class tddd{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private static String directory = "files/";
+	private static String directory = "files/";
 	//private String directory = "javabook/";
 	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "ny/";
-	private static String directory = "gcc/";
+	//private static String directory = "gcc/";
 	private static int window;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -40,13 +40,14 @@ public class tddd{
 
 	public static void main(String [] args) throws IOException, Exception{
 		readFile(directory);
-		driverRun(); // driver for taking in inputs and running the 2min method
+		//driverRun(); // driver for taking in inputs and running the 2min method
 		//System.out.println("TESTIBG")
-		//etBlockFrequency();
+		getBlockFrequency();
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
 	private static void getBlockFrequency() throws Exception{
+		System.out.println("Choping the document\n");
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
 		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
@@ -54,7 +55,7 @@ public class tddd{
 		int start = 0; // start of the sliding window
 		window = 12;
 		int end = start + window - 1; // ending boundary
-		int i = 100;
+		int i = 1000;
 		Long divisor1 =  new Long(i);
 		Long divisor2 = new Long(i/2);
 		Long remainder = new Long(7);
