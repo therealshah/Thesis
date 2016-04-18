@@ -19,14 +19,14 @@ public class tddd{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	private static String directory = "files/";
+	//private static String directory = "files/";
 	//private String directory = "javabook/";
 	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "ny/";
-	//private static String directory = "gcc/";
+	private static String directory = "gcc/";
 	private static int window;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -40,9 +40,9 @@ public class tddd{
 
 	public static void main(String [] args) throws IOException, Exception{
 		readFile(directory);
-		//driverRun(); // driver for taking in inputs and running the 2min method
-			//System.out.println("TESTIBG")
-		getBlockFrequency();
+		driverRun(); // driver for taking in inputs and running the 2min method
+		//System.out.println("TESTIBG")
+		//etBlockFrequency();
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
@@ -311,7 +311,7 @@ public class tddd{
 				matches.put(hash,1); // simply storing the first document
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
-				i = point + 1; // we start i from here again
+				i = point ; // we start i from here again
 				builder.setLength(0); // reset the stringBuilder for the next round
 
 			}
@@ -402,7 +402,7 @@ public class tddd{
 				numOfPieces++; // increment the num of pieces
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
-				i = point + 1; // we start i from here again
+				i = point ; // we start i from here again
 				builder.setLength(0); // reset the stringBuilder for the next round
 
 			}
