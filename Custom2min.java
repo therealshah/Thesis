@@ -19,13 +19,13 @@ public class Custom2min{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private static String directory = "emacs/"; // this is the versioned set for emacs
+	private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
 	//private static String directory = "files/";
 	//private static String directory = "javabook/";
-	private static String directory = "gcc/";
+	//private static String directory = "gcc/";
 	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
 	
@@ -52,7 +52,8 @@ public class Custom2min{
  		// int x = 6;
  		// x = (int) (x*smoothParam);
  		// System.out.println(x);
-		driverRun();
+ 		driverRun();
+	
 		//getBlockFrequency();
 			//System.out.println("TESTIBG")
 	}
@@ -183,7 +184,7 @@ public class Custom2min{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
-		System.out.println("gcc");
+		System.out.println("emacs");
 	
 		for (int i = 10;i<=1000;i+=50)
 		{
@@ -192,7 +193,7 @@ public class Custom2min{
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			smoothBoundary = 2*i; // we will smooth the boundary when we reach here
+			smoothBoundary = i; // we will smooth the boundary when we reach here
 			//minBoundary = 2*i;
 			int localBoundary = i;
 			window = 12; // set value
