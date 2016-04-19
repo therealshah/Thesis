@@ -183,7 +183,7 @@ public class Custom2min{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
-		System.out.println("Emacs");
+		System.out.println("gcc");
 	
 		for (int i = 10;i<=1000;i+=50)
 		{
@@ -192,8 +192,8 @@ public class Custom2min{
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			smoothBoundary = i; // we will smooth the boundary when we reach here
-			minBoundary = 2*i;
+			smoothBoundary = 2*i; // we will smooth the boundary when we reach here
+			//minBoundary = 2*i;
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ public class Custom2min{
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
 	
-			if ((current - documentStart + 1) >= minBoundary){
+			//if ((current - documentStart + 1) >= minBoundary){
 				for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
 				{							
 					if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
@@ -382,20 +382,20 @@ public class Custom2min{
 					}
 				}
 
-				// smooth the boundary
+				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (missCounter != -1){
-						tempBoundary = (int)(localBoundary/2); // decrease the boundary
+					if (tempBoundary >= localBoundary/2){ // only want this to be at most half the original boundary
+						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
 						start = current - tempBoundary;
 						end = current + tempBoundary; // this is the new end
 						//System.out.println("new boundary " + current + " " + tempBoundary + " " + end);
-						missCounter = -1; // we only want to cut it in half after we reach this point
+						missCounter = 0; // we only want to cut it in half after we reach this point
 					}
 				}	
 
-			} // min boundary if statement
+			//} // min boundary if statement
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
@@ -464,7 +464,7 @@ This method:
 		----------------------------------------------*/
 		while (end<md5Hashes.size())
 		{ 
-			if ((current - documentStart + 1) >= minBoundary) {
+			//if ((current - documentStart + 1) >= minBoundary) {
 		
 				for (int i = start; i <= end; ++i)
 				{							
@@ -528,19 +528,19 @@ This method:
 						break; // break out of the for loop
 					}
 				}
-				// smooth the boundary
+				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (missCounter != -1){
-						tempBoundary = (int)(localBoundary/2); // decrease the boundary
+					if (tempBoundary >= localBoundary/2){ // only want this to be at most half the original boundary
+						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
 						start = current - tempBoundary;
 						end = current + tempBoundary; // this is the new end
 						//System.out.println("new boundary " + current + " " + tempBoundary + " " + end);
-						missCounter = -1; // we only want to cut it in half after we reach this point
+						missCounter = 0; // we only want to cut it in half after we reach this point
 					}
-				}
-			} // end of min boundary for loop	
+				}	
+			//} // end of min boundary for loop	
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
