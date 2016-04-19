@@ -19,7 +19,7 @@ public class Custom2min{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	private static String directory = "emacs/"; // this is the versioned set for emacs
+	private static String directory = "gcc/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
@@ -41,6 +41,7 @@ public class Custom2min{
 	private static int numHashBoundariesAtEnd = 0; // used to keep track of how many times we went to the end
 	private static int numHashBoundariesAtEndSecondTime = 0;
 	private static int minBoundary;
+	private static int boundaryDivisor = 4; // sets the minimum boundary divisor
 	private static int smoothBoundary; // used to determine when we should smooth
 	private static double smoothParam = .8; // smoothing param
 	// used for debugging
@@ -52,7 +53,13 @@ public class Custom2min{
  		// int x = 6;
  		// x = (int) (x*smoothParam);
  		// System.out.println(x);
- 		driverRun();
+ 		System.out.println("Gcc");
+ 		while (smoothParam >= .4){
+ 			System.out.println("Smooth Param: " + smoothParam);
+ 			driverRun();
+ 			smoothParam = smoothParam - .1;
+ 		}
+
 	
 		//getBlockFrequency();
 			//System.out.println("TESTIBG")
@@ -184,7 +191,6 @@ public class Custom2min{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
-		System.out.println("emacs");
 	
 		for (int i = 10;i<=1000;i+=50)
 		{
@@ -386,7 +392,7 @@ public class Custom2min{
 				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (tempBoundary >= localBoundary/2){ // only want this to be at most half the original boundary
+					if (tempBoundary >= localBoundary/boundaryDivisor){ // only want this to be at most half the original boundary
 						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
 						start = current - tempBoundary;
@@ -532,7 +538,7 @@ This method:
 				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (tempBoundary >= localBoundary/2){ // only want this to be at most half the original boundary
+					if (tempBoundary >= localBoundary/boundaryDivisor){ // only want this to be at most half the original boundary
 						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
 						start = current - tempBoundary;
