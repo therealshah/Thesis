@@ -19,7 +19,7 @@ public class Custom2min{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	private static String directory = "gcc/"; // this is the versioned set for emacs
+	private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
@@ -55,7 +55,7 @@ public class Custom2min{
  		// System.out.println(x);
  	// 	System.out.println("Gcc");
 		// System.out.println("Smooth Param: " + smoothParam);
-		double [] values = {.5,.4,.3};
+		double [] values = {.8,.7,.6};
 		for (double d: values){
 
 			smoothParam = d; // set the value
