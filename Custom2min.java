@@ -55,7 +55,7 @@ public class Custom2min{
  		// System.out.println(x);
  	// 	System.out.println("Gcc");
 		// System.out.println("Smooth Param: " + smoothParam);
-		double [] values = {.8,.7,.6};
+		double [] values = {.7,.6};
 		for (double d: values){
 
 			smoothParam = d; // set the value
@@ -214,6 +214,7 @@ public class Custom2min{
 					-- We will use the local boundary for all the way up to the value the user entered
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
+			//write.print(localBoundary+" ");
 			// run the 2min algorithm
 			runBytes(localBoundary);
 			// this is the block size per boundary
@@ -234,7 +235,7 @@ public class Custom2min{
 			numHashBoundariesAtEndSecondTime = 0;		
 		}// end of the for loop
 
-		//write.close();	// close the file
+		write.close();	// close the file
 	}
 
 
