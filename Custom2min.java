@@ -43,7 +43,7 @@ public class Custom2min{
 	private static int minBoundary;
 	private static int boundaryDivisor = 4; // sets the minimum boundary divisor
 	private static int smoothBoundary; // used to determine when we should smooth
-	private static double smoothParam = .8; // smoothing param
+	private static double smoothParam = .7; // smoothing param
 	// used for debugging
 	//PrintWriter writer;
 
@@ -53,12 +53,18 @@ public class Custom2min{
  		// int x = 6;
  		// x = (int) (x*smoothParam);
  		// System.out.println(x);
- 		System.out.println("Gcc");
- 		while (smoothParam >= .4){
- 			System.out.println("Smooth Param: " + smoothParam);
- 			driverRun();
- 			smoothParam = smoothParam - .1;
- 		}
+ 	// 	System.out.println("Gcc");
+		// System.out.println("Smooth Param: " + smoothParam);
+		double [] values = {.5,.4,.3};
+		for (double d: values){
+
+			smoothParam = d; // set the value
+			System.out.println(smoothParam);
+			driverRun();
+
+		}
+
+	
 
 	
 		//getBlockFrequency();
@@ -191,7 +197,7 @@ public class Custom2min{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
-	
+		//PrintWriter write = new PrintWriter("output" + smoothParam + ".txt"); // write results ot the output
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
@@ -199,7 +205,7 @@ public class Custom2min{
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			smoothBoundary = i; // we will smooth the boundary when we reach here
+			smoothBoundary = i/2; // we will smooth the boundary when we reach here
 			//minBoundary = 2*i;
 			int localBoundary = i;
 			window = 12; // set value
@@ -215,6 +221,7 @@ public class Custom2min{
 			double ratio = (double)coverage/(double)totalSize;
 			//System.out.print("Coverage " + coverage + " Totalsize " + totalSize);
 			//System.out.println( " block size: " + blockSize+ " ratio: "+ratio);
+			//write.println(blockSize + " " + ratio); // write to the file
 			System.out.println(blockSize + " " + ratio);
 			//System.out.println(numHashBoundariesAtEnd + " " + numHashBoundariesAtEndSecondTime);
 
@@ -225,7 +232,9 @@ public class Custom2min{
 			numOfPieces = 0;
 			numHashBoundariesAtEnd = 0;
 			numHashBoundariesAtEndSecondTime = 0;		
-		}	
+		}// end of the for loop
+
+		//write.close();	// close the file
 	}
 
 
@@ -392,9 +401,10 @@ public class Custom2min{
 				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (tempBoundary >= localBoundary/boundaryDivisor){ // only want this to be at most half the original boundary
+					if (tempBoundary > localBoundary/boundaryDivisor && ((int)(tempBoundary*smoothParam) > 0)){ // only want this to be at most half the original boundary
 						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
+						//System.out.println(tempBoundary);
 						start = current - tempBoundary;
 						end = current + tempBoundary; // this is the new end
 						//System.out.println("new boundary " + current + " " + tempBoundary + " " + end);
@@ -538,7 +548,7 @@ This method:
 				// smooth the boundary if we get here
 				if (missCounter >= smoothBoundary){
 					// if we reached here, then it's time to smooth
-					if (tempBoundary >= localBoundary/boundaryDivisor){ // only want this to be at most half the original boundary
+					if (tempBoundary > localBoundary/boundaryDivisor && ((int)(tempBoundary*smoothParam) > 0)){ // only want this to be at most half the original boundary
 						tempBoundary = (int)(tempBoundary*smoothParam); // decrease the boundary
 						// the new start will be current - tempBoundary
 						start = current - tempBoundary;
