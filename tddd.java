@@ -19,14 +19,14 @@ public class tddd{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	private static String directory = "files/";
+	//private static String directory = "files/";
 	//private String directory = "javabook/";
 	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "htmltar/";
 	//private String directory = "sublime/";
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "ny/";
-	//private static String directory = "gcc/";
+	private static String directory = "gcc/";
 	private static int window;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -40,9 +40,9 @@ public class tddd{
 
 	public static void main(String [] args) throws IOException, Exception{
 		readFile(directory);
-		//driverRun(); // driver for taking in inputs and running the 2min method
+		driverRun(); // driver for taking in inputs and running the 2min method
 		//System.out.println("TESTIBG")
-		getBlockFrequency();
+		//getBlockFrequency();
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
@@ -149,6 +149,7 @@ public class tddd{
 		window = 12;
 		Long divisor1;
 		Long divisor2; // second mod value we will be using
+		Long divisor3;
 		Long remainder = new Long(7); // this is the remainder that we will be comparing with
 		Long minBoundary;
 		Long maxBoundary;
@@ -156,12 +157,13 @@ public class tddd{
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
-			minBoundary  = new Long(2*i); // we will set the mod value as the minimum boundary
+			minBoundary  = new Long(i/2); // we will set the mod value as the minimum boundary
 			maxBoundary = new Long(8*i); // we will set this as the maximum boundary
 			divisor1 = new Long(i); // this will be used to mod the results
-			divisor2 = new Long(i/2); // the backup divisor is half the original divisor
-			System.out.print( i+" " + i/2 + " ");
-			runBytes(window,divisor1,divisor2,remainder,minBoundary,maxBoundary); // run the karb rabin algorithm
+			divisor2 = new Long(i/2 - 1); // the backup divisor is half the original divisor
+			divisor3 = new Long(i/4 - 1);
+			System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
+			runBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // run the karb rabin algorithm
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -182,11 +184,11 @@ public class tddd{
 		- @params:
 			window - rolling window size 
 			divisor1 - the first divisor value we will be using to find the remainder
-			divisor2 - the second divisor value we will be using to find the remainder
+			divisor2/3 - the second/third divisor value we will be using to find the remainder
 			minBoundary/maxBoundary - min/ max boundaries for the chunks
 	
 	*/
-	private static void runBytes(int window, Long divisor1, Long divisor2, Long remainder,Long minBoundary,Long maxBoundary) throws IOException,Exception{
+	private static void runBytes(int window, Long divisor1, Long divisor2,Long divisor3, Long remainder,Long minBoundary,Long maxBoundary) throws IOException,Exception{
 
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
@@ -206,13 +208,13 @@ public class tddd{
 					hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 					// if this is the first document, we will simply get the boundary chunks and store them
 					if (first){
-						storeChunks(array,md5Hashes,divisor1,divisor2,remainder,minBoundary,maxBoundary);
+						storeChunks(array,md5Hashes,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);
 						first = !first;
 						totalSize = 0;
 					}
 					else{
 						totalSize = array.length; // get the length for this document
-						runTddd(array,md5Hashes,divisor1,divisor2,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
+						runTddd(array,md5Hashes,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 					}
 					md5Hashes.clear(); // clear our md5hashes array									
 				} // end of the for ( that reads the files) loop				
@@ -254,18 +256,19 @@ public class tddd{
 		--	Takes in three paramters:
 			1. array - this is the byte array that actually holds the document contents
 			2. md5Hases - holds the entire hash values of the document
-			3. Divisor1/Divisor2 - main and back up divisor
+			3. Divisor1/Divisor2/divisor3... - main and back up divisors
 			5. The remainder we are looking for
 			6/7. min/max boundaries
 
 		-- We are simply choping up the first file
 	-------------------------------------------------------------------------------------------------------- */
-	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long remainder
+	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long divisor3,Long remainder
 		,Long minBoundary,Long maxBoundary){
 
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		int backUpBreakPoint = -1; // used to store the backup breakpoint
+		int secondBackUpBreakPoint = -1; // this is the second backup point with the divisor3
 		StringBuilder builder = new StringBuilder();
 		// loop through all the values in the document
 		for (int i = 0; i < md5Hashes.size();++i)
@@ -289,16 +292,22 @@ public class tddd{
 				matches.put(hash,1); // simply storing the first document
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
+				secondBackUpBreakPoint = -1; // second backup point reset it!
 				builder.setLength(0); // reset the stringBuilder for the next round
 			}		
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
 				backUpBreakPoint = i; // this is the backup breakpoint
+			}
+			else if (md5Hashes.get(i)%divisor3 == remainder){
+				secondBackUpBreakPoint = i; // we found a second backup point with divisor3
 			}
 			if ((i - documentStart + 1) >= maxBoundary ) { // we have reached the maximum
 				// ck if we have a backUpbreakpoint
 				int point;
 				if (backUpBreakPoint != -1)// if we do, set this as the boundary
 			    	point = backUpBreakPoint;
+			    else if (secondBackUpBreakPoint != -1)
+			    	point = secondBackUpBreakPoint; // if we don't have a first backup, ck if we have a second
 			    else
 			    	point = i; // else this current value of i is the breakpoint
 
@@ -312,6 +321,7 @@ public class tddd{
 				matches.put(hash,1); // simply storing the first document
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
+				secondBackUpBreakPoint = -1; // reset second backup break point
 				i = point ; // we start i from here again
 				builder.setLength(0); // reset the stringBuilder for the next round
 
@@ -339,20 +349,27 @@ public class tddd{
 
 	/* -------------------------------------------------------------------------------------------------------
 	This method:
+
+		This method:
 		--	Takes in three paramters:
 			1. array - this is the byte array that actually holds the document contents
 			2. md5Hases - holds the entire hash values of the document
-			3. localboundary - used to keep track of how the 2min chooses it boundaries
+			3. Divisor1/Divisor2/divisor3... - main and back up divisors
+			5. The remainder we are looking for
+			6/7. min/max boundaries
 
 		-- We will start running the karb rabin algorithm
 		-- We will find the boundaries using mod values and once they equal the mod value we have stored
+		-- we also have the divsor2/3 .. which are backup divisors. If we don't find a boundary by the divisor1 once we hit the maxBoundary
+		-- we will see if we have one with divisor2, if not, then we will see if we have one with divisor3 and so on
 		-- We will hash everything in that hash boundary and store it
 	-------------------------------------------------------------------------------------------------------- */
-	private static void runTddd(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long remainder
+	private static void runTddd(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long divisor3,Long remainder
 		,Long minBoundary,Long maxBoundary){
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		int backUpBreakPoint = -1; // used to store the backup breakpoint
+		int secondBackUpBreakPoint = -1; // used with the divisor3
 		StringBuilder builder = new StringBuilder();
 		// loop through all the values in the document
 		for (int i = 0; i < md5Hashes.size();++i)
@@ -377,17 +394,24 @@ public class tddd{
 					coverage+= i - documentStart + 1; // this is the amount of bytes we saved
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
+				secondBackUpBreakPoint = -1;
 				numOfPieces++; // increment the num of pieces
 				builder.setLength(0); // reset the stringBuilder for the next round
 			}		
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
 				backUpBreakPoint = i; // this is the backup breakpoint
 			}
+			else if (md5Hashes.get(i)%divisor2 == remainder){
+				secondBackUpBreakPoint = i; // set the second backup point
+			}
 			if ((i - documentStart + 1) >= maxBoundary ) { // we have reached the maximum
 				// ck if we have a backUpbreakpoint
 				int point;
 				if (backUpBreakPoint != -1)// if we do, set this as the boundary
 			    	point = backUpBreakPoint;
+			    else if (secondBackUpBreakPoint != -1){
+			    	point = secondBackUpBreakPoint; // if we don't have a first break point, find the second
+			    }
 			    else
 			    	point = i; // else this current value of i is the breakpoint
 
@@ -403,6 +427,7 @@ public class tddd{
 				numOfPieces++; // increment the num of pieces
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
+				secondBackUpBreakPoint = -1; // reset the secondBackUp point
 				i = point ; // we start i from here again
 				builder.setLength(0); // reset the stringBuilder for the next round
 

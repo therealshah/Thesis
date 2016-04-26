@@ -65,10 +65,10 @@ public class decrement2min{
 
 	private static void driverRun() throws IOException, Exception{
 
-		for (int i = 50;i<=1000;i+=50)
+		for (int i = 10;i<=1000;i+=50)
 		{
 
-			maxBoundary = 4*i; // mas boudnary
+			maxBoundary = 8*i; // mas boudnary
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -237,13 +237,13 @@ public class decrement2min{
 				int dStart = documentStart; // this is the beginning
 				//System.out.println("in threshold");
 
-				int dEnd = (current-documentStart+1); // this is the end
+				int dEnd = dStart + (current-documentStart+1); // this is the end (note add dStart!)
 				int decrementSize = 1; // initially decrement by one
 				int point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,decrementSize);// will return if a boundary is found, if not then -1
-				while (point != -1){
+				while (point == -1){
 					// if we didn't find a boundary, then decrement theSize by one and run again
 					//System.out.println("in while loop for decrement");
-					point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,--decrementSize);// will return if a boundary is found, if not then -1
+					point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,++decrementSize);// will return if a boundary is found, if not then -1
 
 				}
 				//System.out.println("exiting while loop");
@@ -268,6 +268,7 @@ public class decrement2min{
 				current++;
 				end++;
 			}
+			//System.out.println(start + " " + current + " " + end);
 			match = false; // reset this match								
 		} // end of the while loop
 
@@ -303,6 +304,7 @@ public class decrement2min{
 			-- We are determing if we can find a boundary with the local boundary decremented by decrementSize
 	-------------------------------------------------------------------------------------------------------- */
 	private static int runDecrement2min(int dStart,int dEnd, ArrayList<Long> md5Hashes, int localBoundary,int decrementSize){
+		//System.out.println("Entering runDecrement");
 		localBoundary = localBoundary - decrementSize; // decrement the localBoundary by the decrement factor
 		int start = dStart; // starting point
 		int current = start + localBoundary;// has to be atlead here to be the local minima
@@ -311,6 +313,12 @@ public class decrement2min{
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
+		if (localBoundary == 0){
+				// if it's zero, that means we havent found a boundary
+			//System.out.println("In here " + dStart + " " + dEnd + " " + decrementSize);
+			return dStart; // we'll make the start the boundary
+		}
+
 		while (end<dEnd) // loop through till we our end ( which was the max boundary)
 		{ 
 			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
@@ -331,7 +339,8 @@ public class decrement2min{
 			// go to the next window because we still havent found the boundary
 			start++;
 			current++;
-			end++;						
+			end++;	
+			//System.out.println(start + " " + current+" " + end);					
 		} // end of the while loop
 		return -1; // return -1 because we still didn't find a boundary
 	} // end of the method
@@ -350,7 +359,7 @@ public class decrement2min{
 		-- we also keep track of a counter and misscounter, which we use to compute the ratio
 	-------------------------------------------------------------------------------------------------------- */
 	private static void run2min(byte [] array, ArrayList<Long> md5Hashes, int localBoundary) throws Exception{
-		System.out.println("Inside run2min");
+		//System.out.println("Inside run2min");
 		int start = 0; // starting point
 		int current = localBoundary;// has to be atlead here to be the local minima
 		int end  = localBoundary *2;  // this is the end of the window
@@ -411,18 +420,18 @@ public class decrement2min{
 			if ((current-documentStart + 1) >= maxBoundary){
 				// start is document start
 				// end is current-documentStart + 1
-				System.out.println("inside threshold");
+				//System.out.println("inside threshold");
 				int dStart = documentStart; // this is the beginning
-				int dEnd = (current-documentStart+1); // this is the end
+				int dEnd = dStart + (current-documentStart+1); // this is the end
 				int decrementSize = 1; // initially decrement by one
 				int point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,decrementSize);// will return if a boundary is found, if not then -1
-				while (point != -1){
+				while (point == -1){
 
 					// if we didn't find a boundary, then decrement theSize by one and run again
-					point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,--decrementSize);// will return if a boundary is found, if not then -1
+					point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,++decrementSize);// will return if a boundary is found, if not then -1
 
 				}
-				System.out.println("making boundary");
+				//System.out.println("making boundary");
 				// now we made it, with point being boundary point
 				for (int j = documentStart; j <= point;++j)
 					builder.append(array[j]); 
