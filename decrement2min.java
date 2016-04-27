@@ -26,6 +26,7 @@ public class decrement2min{
 	//private static String directory = "files/";
 	//private static String directory = "javabook/";
 	private static String directory = "gcc/";
+	//private static String directory = "morph.998/";
 	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
 	
@@ -68,7 +69,7 @@ public class decrement2min{
 		for (int i = 10;i<=1000;i+=50)
 		{
 
-			maxBoundary = 8*i; // mas boudnary
+			maxBoundary = 4*i; // mas boudnary
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------

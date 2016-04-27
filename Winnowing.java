@@ -25,12 +25,12 @@ public class Winnowing{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private String directory = "emacs/"; // this is the versioned set for emacs
+	//private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
-	//private static String directory = "files/";
-	private static String directory = "gcc/";
+	private static String directory = "files/";
+	//private static String directory = "gcc/";
 	//private static String directory = "sublime/";
 	private static int window;// window is size 3
 	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
@@ -45,10 +45,17 @@ public class Winnowing{
 	//PrintWriter writer;
 
 	public static void main(String [] args) throws IOException, Exception{
- 		readFile(directory); // read the file
-		driverRun();
-		//getBlockFrequency(); // this generates all the block sizes for winnowing along with there frequencies
+ 	// 	readFile(directory); // read the file
+		// //driverRun();
+		// getBlockFrequency(); // this generates all the block sizes for winnowing along with there frequencies
 			//System.out.println("TESTIBG")
+		String [] dir = {"morph.998/","morph.99/","morph.98/"};
+		for (String s: dir){
+			directory = s;
+			System.out.println(directory);
+			readFile(directory);
+			driverRun();
+		}
 	
 	}
 
@@ -111,6 +118,9 @@ This method:
 			// we have found a boundary, so just hash it 
 			if (match){
 				int size = prevBoundary - documentStart + 1; // this is the size of this block freq
+				if (size == 0){
+					System.out.println(prevBoundary + " " + documentStart);
+				}
 				if (blockFreq.get(size) == null){ // if not in there, then simply store it}
 					blockFreq.put(size,1); // simply insert the chunks in the document
 					//System.out.println("in here");
@@ -119,7 +129,8 @@ This method:
 					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
 				counter++; // increment the block count
 				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
-				prevBoundary = -1;
+				match = false;
+				//prevBoundary = -1;
 			}
 			start++;
 			current++;						
@@ -398,7 +409,6 @@ This method:
 		//	already, then we will simply increment the counter, otherwise we will insert it in the hashtable
 		//	and increase our miss counter
 		//----------------------------------------------------------------------------------------------
-
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]);  
 		}

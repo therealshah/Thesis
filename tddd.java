@@ -59,8 +59,8 @@ public class tddd{
 		Long divisor1 =  new Long(i);
 		Long divisor2 = new Long(i/2);
 		Long remainder = new Long(7);
-		Long minBoundary = new Long(2*i);
-		Long maxBoundary = new Long(8*i);
+		Long minBoundary = new Long(i);
+		Long maxBoundary = new Long(4*i);
 		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 		int totalBlocks = chopDocument(array,md5Hashes,divisor1,divisor2,remainder,minBoundary,maxBoundary,blockFreq);
 		// now output the block sizes, along with there frequencies and probilities
@@ -157,11 +157,11 @@ public class tddd{
 		for (int i = 10;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
-			minBoundary  = new Long(i/2); // we will set the mod value as the minimum boundary
-			maxBoundary = new Long(8*i); // we will set this as the maximum boundary
+			minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
+			maxBoundary = new Long(4*i); // we will set this as the maximum boundary
 			divisor1 = new Long(i); // this will be used to mod the results
-			divisor2 = new Long(i/2 - 1); // the backup divisor is half the original divisor
-			divisor3 = new Long(i/4 - 1);
+			divisor2 = new Long(i/2); // the backup divisor is half the original divisor
+			divisor3 = new Long(i/4);
 			System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
 			runBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // run the karb rabin algorithm
 			// this is the block size per boundary
