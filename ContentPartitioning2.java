@@ -175,15 +175,16 @@ public class ContentPartitioning2{
 		//readDir(); // directories dont change
 		// readFile(directory);
 		//test();// test the code
-		System.out.println("Emacs");
-		for (int i = 10;i<=1000;i+=50)
+		System.out.println("gcc");
+		double factor = 1.5;
+		for (int i = 50;i<=1000;)
 		{
 			//System.out.print("Enter localBoundry:");
 			
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			minBoundary = new Long(3*i);
+			//minBoundary = new Long(3*i);
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -208,6 +209,10 @@ public class ContentPartitioning2{
 			numOfPieces = 0;
 			numHashBoundariesAtEnd = 0;
 			numHashBoundariesAtEndSecondTime = 0;		
+			if (i > 500)
+				i += 30;
+			else 
+				i *= factor;	
 		}	
 	}
 
