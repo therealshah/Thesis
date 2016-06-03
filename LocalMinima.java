@@ -70,7 +70,7 @@ public class LocalMinima{
  		// 	driverRun();
  		// }
  		directory = "morph.99805/";
- 	// 	directory = "morphTest/";
+ 		// 	directory = "morphTest/";
  		readFile(directory);
 		driverRun();
 		//getBlockFrequency();
@@ -200,7 +200,7 @@ public class LocalMinima{
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
-			runBytes(localBoundary);
+			readBytes(localBoundary);
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -228,7 +228,7 @@ public class LocalMinima{
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes(int localBoundary) throws IOException,Exception{
+	private static void readBytes(int localBoundary) throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
