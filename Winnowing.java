@@ -7,15 +7,27 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.zip.*;
 
-/*
-	- This is the code for Winnowing. It's basically the same code at 2min but only goes in one direction
-	- We loop through the array and find the first minimum that is less than or equal to the previous and k hash
-	-- values
 
-	// 1st step- Hash every document
-	-- 2nd step - get the boundaries of the first document
-	-- 3rd step - hash and get boundaries of second document and ck similarities
+/*
+	Author: Shahzaib Javed
+	Purpose: Research for NYU Tandon University
+
+
+
+	Abstract: LocalMinima is a content dependant chunking method. It determines the boundaries for the document using the local minima. 
+	All content dependant algorithms first hash the document using a sliding window of length w, which we will call the hash array. (12 for all these experiments). This step is true for all content dependant chunking algorithms.
+	Next the cut points for the document are determined from the hash array, using a content dependant method.
+	The original document is divided into chunks using the cut points as boundaries between the chunks. Different versions of the documents are
+	using where the first chunks of the document are stored, whereas the second version is simply used to see of that portion of the document
+	occurred.
+
+
+	Winnowing: This algorithm is kinda similar to the local minima method. We have a parameter called w which is the window size which we slide. A cutpoint is
+	determined by the following way, we find the minimum hash value within the w size and declare that as the boundary. When a new hash comes in,
+	we compare with the smallest and if it is the smallest, that is a hash value. Note when the previous boundary slides out of the window, we
+	find a new minimum hash value and declare that as the cutpoint.
 */
+
 
 public class Winnowing{
 
@@ -29,8 +41,8 @@ public class Winnowing{
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
-	private static String directory = "files/";
-	//private static String directory = "gcc/";
+	//private static String directory = "files/";
+	private static String directory = "gcc/";
 	//private static String directory = "sublime/";
 	private static int window;// window is size 3
 	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
@@ -49,13 +61,16 @@ public class Winnowing{
 		// //driverRun();
 		// getBlockFrequency(); // this generates all the block sizes for winnowing along with there frequencies
 			//System.out.println("TESTIBG")
-		String [] dir = {"morph.998/","morph.99/","morph.98/"};
-		for (String s: dir){
-			directory = s;
-			System.out.println(directory);
-			readFile(directory);
-			driverRun();
-		}
+		// String [] dir = {"morph.998/","morph.99/","morph.98/"};
+		// for (String s: dir){
+		// 	directory = s;
+		// 	System.out.println(directory);
+		// 	readFile(directory);
+		// 	driverRun();
+		// }
+		readFile(directory);
+		driverRun();
+
 	
 	}
 
@@ -153,7 +168,7 @@ This method:
 
 	private static void driverRun() throws IOException, Exception{
 
-		for (int i = 10;i<=1000;i+=50)
+		for (int i = 1000;i<=10000;i+=500)
 		{
 			//System.out.print("Enter localBoundry:");
 			
@@ -168,7 +183,7 @@ This method:
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
-			runBytes(localBoundary);
+			readBytes(localBoundary);
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -190,7 +205,7 @@ This method:
 		- This method reads the file using bytes
 		- This is where we run the 2min content dependent partitioning
 	*/
-	private static void runBytes(int localBoundary) throws IOException,Exception{
+	private static void readBytes(int localBoundary) throws IOException,Exception{
 			/*---------------------------------------------------------------------------------
 				Read in all the files and loop through all the files
 				We will first cut the first document into chuncks and store it
@@ -286,7 +301,7 @@ This method:
 	--	Takes in three paramters:
 		1. array - this is the byte array that actually holds the document contents
 		2. md5Hases - holds the entire hash values of the document
-		3. localboundary - used to keep track of how the 2min chooses it boundaries
+		3. localboundary - how big the neighborhood is
 
 	-- We are simply finding the boundaries of the file using winnowing and simply storing them. Nothing more!
 -------------------------------------------------------------------------------------------------------- */

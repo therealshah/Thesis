@@ -7,9 +7,31 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.zip.*;
 
+
 /*
-	- What Im doing atm, is read the file by bytes. Not just scrape the html
+	Author: Shahzaib Javed
+	Purpose: Research for NYU Tandon University
+
+
+
+	Abstract: LocalMinima is a content dependant chunking method. It determines the boundaries for the document using the local minima. 
+	All content dependant algorithms first hash the document using a sliding window of length w, which we will call the hash array. (12 for all these experiments). This step is true for all content dependant chunking algorithms.
+	Next the cut points for the document are determined from the hash array, using a content dependant method.
+	The original document is divided into chunks using the cut points as boundaries between the chunks. Different versions of the documents are
+	using where the first chunks of the document are stored, whereas the second version is simply used to see of that portion of the document
+	occurred.
+
+
+	TwoMax: This algorithm is similiar to the LocalMinima method, but has minor tweaks. Similar to the localMinima algorithm, this one 
+	also has a BoundarySize associated with it called B. Similar to the LocalMinima, this algorithm declares a hash a cutpoint only if the hash
+	is strictly less than the B hases before it and B hashes after it. The original localMaxima breaks as soon as it fails. TwoMax however, will continue
+	until it fails to be both the minimum in its vicinity and the maximum in its vicinity. If the hash is the maximum, then that is stored as a 
+	backup point. 
+		The second parameter associated with this algorithm is a max chunk size. Once we hit the maximum chunk size, we will 
+	use the maximum hash value that is stored, if there is one. If not, then we will find a hash that is either the minimum or maximum as the boundary point
+
 */
+
 
 public class TwoMax{
 
@@ -47,6 +69,16 @@ public class TwoMax{
 
 	public static void main(String [] args) throws IOException, Exception
  	{
+ 		//String [] dir = {"morph.99590/","morph.99595/","morph.99870/","morph.99875/","morph.99880/","morph.99885/","morph.99890/","morph.99970/","morph.99975/","morph.99980/","morph.99985/","morph.99990/"};
+ 		// String [] dir = {"morph.998001/","morph.998005/"};
+
+ 		// for (String s: dir){
+ 		// 	directory = s;
+ 		// 	System.out.println(directory);
+ 		// 	readFile(directory);
+ 		// 	driverRun();
+ 		// }
+ 		directory = "morph.999001/";
  		readFile(directory);
 		driverRun();
 		//getBlockFrequency();
@@ -155,27 +187,13 @@ public class TwoMax{
 		return ++counter;
 	} // end of the method
 
-	private static void test() throws IOException,Exception{
-		String file1 = fileList.get(0);
-		String file2 = fileList.get(1);
 
-		Path p = Paths.get(directory+file1);
-		byte [] arr1 = Files.readAllBytes(p);
-		p = Paths.get(directory+file2);
-		byte [] arr2 = Files.readAllBytes(p);
-
-		int counter = 0; // ck how much they are similar
-		for (int i = 0; i < arr2.length; ++i)
-			if (arr1[i] == arr2[i])
-				counter++;
-		System.out.println("Matches = " + counter + " out of " + arr2.length);
-	}
 
 	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		// readFile(directory);
-		//test();// test the code
-		System.out.println("gcc");
+		System.out.println(directory);
+		for (String s : fileList)
+			System.out.println(s);
+		System.out.println("4*i");
 		double factor = 1.5;
 		for (int i = 50;i<=1000;)
 		{
@@ -194,7 +212,7 @@ public class TwoMax{
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
-			runBytes(localBoundary);
+			readBytes(localBoundary);
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -219,46 +237,48 @@ public class TwoMax{
 
 
 	/*
-		- This method reads the file using bytes
-		- This is where we run the 2min content dependent partitioning
+		- This method 
+			--reads the file using bytes
+			-- calls the chunkingMethod
+			-- and runs and finds the boundary points
 	*/
-	private static void runBytes(int localBoundary) throws IOException,Exception{
-			/*---------------------------------------------------------------------------------
-				Read in all the files and loop through all the files
-				We will first cut the first document into chuncks and store it
-				Then we will hash the next document and see how much coverage we get (how many matches we get)
-			--------------------------------------------------------------------------------------*/
-				File file = null;
-				boolean first = true; // this will be used to ck if it's the first file or not
-				ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
-				for (String fileName: fileList)
-				{
-					//System.out.println(fileName);
-					Path p = Paths.get(directory+fileName);
+	private static void readBytes(int localBoundary) throws IOException,Exception{
+		/*---------------------------------------------------------------------------------
+			Read in all the files and loop through all the files
+			We will first cut the first document into chuncks and store it
+			Then we will hash the next document and see how much coverage we get (how many matches we get)
+		--------------------------------------------------------------------------------------*/
+		File file = null;
+		boolean first = true; // this will be used to ck if it's the first file or not
+		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
+		for (String fileName: fileList)
+		{
+			//System.out.println(fileName);
+			Path p = Paths.get(directory+fileName);
 
-					// read the file
-					byte [] array = Files.readAllBytes(p); // read the file in bytes
-					//System.out.println(array.length);
-					//System.out.println(fileName + "  " + array.length);
-					int start = 0; // start of the sliding window
-					int end = start + window - 1; // ending boundary
-					hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-					// if this is the first document, we will simply get the boundary chunks and store them
-					if (first){
-						storeChunks(array,md5Hashes,localBoundary);
-						first = !first;
-						totalSize = 0;
-					}
-					else{
+			// read the file
+			byte [] array = Files.readAllBytes(p); // read the file in bytes
+			//System.out.println(array.length);
+			//System.out.println(fileName + "  " + array.length);
+			int start = 0; // start of the sliding window
+			int end = start + window - 1; // ending boundary
+			hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+			// if this is the first document, we will simply get the boundary chunks and store them
+			if (first){
+				storeChunks(array,md5Hashes,localBoundary);
+				first = !first;
+				totalSize = 0;
+			}
+			else{
 
-						totalSize = array.length; // get the total size of the file
-						run2min(array,md5Hashes,localBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
-					}
+				totalSize = array.length; // get the total size of the file
+				runTwoMax(array,md5Hashes,localBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
+			}
 
-					// empty out the md5 Hashes for reuse
-					md5Hashes.clear();
-									
-				} // end of the for ( that reads the files) loop
+			// empty out the md5 Hashes for reuse
+			md5Hashes.clear();
+							
+		} // end of the for ( that reads the files) loop
 						
 	} // end of the function
 
@@ -297,13 +317,12 @@ public class TwoMax{
 		--	Takes in three paramters:
 			1. array - this is the byte array that actually holds the document contents
 			2. md5Hases - holds the entire hash values of the document
-			3. localboundary - used to keep track of how the 2min chooses it boundaries
+			3. localboundary - how to big the neighborhood is for finding the minimum for hash value
 
-		-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
+		-- We are simply finding the boundaries of the file using TwoMax and simply storing them. Nothing more!
 	-------------------------------------------------------------------------------------------------------- */
 	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 		int start = 0; // starting point
-		//System.out.println("TESTING" + localBoundary);
 		int current = localBoundary;// has to be atlead here to be the local minima
 		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
@@ -373,7 +392,6 @@ public class TwoMax{
 					builder.append(array[j]); 
 				}
 				String hash = hashString(builder.toString(),"MD5"); // hash this boundary
-				//System.out.println(current-documentStart + 1);
 				matches.put(hash,1); // simply insert the chunks in the hashtable
 				documentStart = maxPoint + 1;// set this as the beginning of the new boundary
 				start = maxPoint + 1;
@@ -416,20 +434,16 @@ public class TwoMax{
 
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	--	Takes in three paramters:
-		1. array - this is the byte array that actually holds the document contents
-		2. md5Hases - holds the entire hash values of the document
-		3. localboundary - used to keep track of how the 2min chooses it boundaries
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		--	Takes in three paramters:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. localboundary -how to big the neighborhood is for finding the minimum for hash value
 
-	-- We will start running the 2 min algorithim here
-	-- We have a sliding window and find the local minima or local maxima within the document
-	-- We have a hashTable where we store the values of the boundaries and compare to see if we have
-	-- already seen this
-	-- we also keep track of a counter and misscounter, which we use to compute the ratio
--------------------------------------------------------------------------------------------------------- */
-	private static void run2min(byte [] array, ArrayList<Long> md5Hashes, int localBoundary) throws Exception{
+		-- We will start running the TwoMax algorithim here
+	-------------------------------------------------------------------------------------------------------- */
+	private static void runTwoMax(byte [] array, ArrayList<Long> md5Hashes, int localBoundary) throws Exception{
 		int start = 0; // starting point
 		int current = localBoundary;// has to be atlead here to be the local minima
 		int end  = localBoundary *2;  // this is the end of the window
@@ -442,7 +456,6 @@ This method:
 		/* --------------------------------------------
 			-- Loop throught and compare each value in the boundary 
 			-- and find the boundaries
-
 		----------------------------------------------*/
 		while (end<md5Hashes.size())
 		{ 

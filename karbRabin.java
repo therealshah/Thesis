@@ -8,7 +8,21 @@ import java.nio.file.Path;
 import java.util.zip.*;
 
 /*
-	- What Im doing atm, is read the file by bytes. Not just scrape the html
+	Author: Shahzaib Javed
+	Purpose: Research for NYU Tandon University
+
+
+
+	Abstract: LocalMinima is a content dependant chunking method. It determines the boundaries for the document using the local minima. 
+	All content dependant algorithms first hash the document using a sliding window of length w, which we will call the hash array. (12 for all these experiments). This step is true for all content dependant chunking algorithms.
+	Next the cut points for the document are determined from the hash array, using a content dependant method.
+	The original document is divided into chunks using the cut points as boundaries between the chunks. Different versions of the documents are
+	using where the first chunks of the document are stored, whereas the second version is simply used to see of that portion of the document
+	occurred.
+
+
+	Karb-Rabin: This algorithm is a very simply content dependant chunking algorithm. A hash value is declared a cutpoint if the hash value mod d = q.
+	Where d is the divisor and used to get the expected chunk lengths and q is the remainder that the value equals.
 */
 
 public class karbRabin{

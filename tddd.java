@@ -7,9 +7,32 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.zip.*;
 
+
 /*
-	- What Im doing atm, is read the file by bytes. Not just scrape the html
+	Author: Shahzaib Javed
+	Purpose: Research for NYU Tandon University
+
+
+
+	Abstract: LocalMinima is a content dependant chunking method. It determines the boundaries for the document using the local minima. 
+	All content dependant algorithms first hash the document using a sliding window of length w, which we will call the hash array. (12 for all these experiments). This step is true for all content dependant chunking algorithms.
+	Next the cut points for the document are determined from the hash array, using a content dependant method.
+	The original document is divided into chunks using the cut points as boundaries between the chunks. Different versions of the documents are
+	using where the first chunks of the document are stored, whereas the second version is simply used to see of that portion of the document
+	occurred.
+
+
+	Tddd: This algorithm is similar to the karb Rabin content Dependent partioning algo. The karb rabin algorithim declares 
+	 a hash value a cutpoint if the hash value mod d = q.
+	Where d is the divisor and used to get the expected chunk lengths and q is the remainder that the value equals. TDDD has mulitple d's. 
+	The mainDivisor works the same way as that for Karb Rabin. The secondDivisor is used only if the mainDivisor fails but the hash satisfying 
+	this condition isn't immediately declared a cut-point. It is simiply stored. We could also have thirdDivisor, fourthDivisor etc
+
+	Now we also have two more params. To prevent too small chunks, we have a minimum boundary size and can only start declaring chunks
+	only after we have a chunk size greater than this value. Similarly, to prevent too big chunks, we have a max boudary size. Once we hit that, we check
+	if we have a backup divisor (second, third etc) and use that to declare the cutpoint. If not, then we declare the current hash as the cut point 
 */
+
 
 public class tddd{
 
@@ -154,8 +177,11 @@ public class tddd{
 		Long minBoundary;
 		Long maxBoundary;
 		System.out.println("gcc");
-		for (int i = 10;i<=1000;i+=50)
+		double factor = 1.5;
+		for (int i = 50;i<=1000;)
 		{
+			
+
 			//System.out.print("Enter localBoundry:");
 			minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
 			maxBoundary = new Long(4*i); // we will set this as the maximum boundary
@@ -174,7 +200,12 @@ public class tddd{
 			matches.clear();
 			coverage = 0;
 			totalSize = 0;
-			numOfPieces = 0; 		
+			numOfPieces = 0; 	
+
+			if (i > 500)
+				i += 30;
+			else 
+				i *= factor;	
 		}
 		//in.close();		
 	}

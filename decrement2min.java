@@ -8,10 +8,28 @@ import java.nio.file.Path;
 import java.util.zip.*;
 
 /*
-	- What Im doing atm, is read the file by bytes. Not just scrape the html
+	Author: Shahzaib Javed
+	Purpose: Research for NYU Tandon University
+
+
+
+	Abstract: LocalMinima is a content dependant chunking method. It determines the boundaries for the document using the local minima. 
+	All content dependant algorithms first hash the document using a sliding window of length w, which we will call the hash array. (12 for all these experiments). This step is true for all content dependant chunking algorithms.
+	Next the cut points for the document are determined from the hash array, using a content dependant method, (decrement2min in this case).
+	The original document is divided into chunks using the cut points as boundaries between the chunks. Different versions of the documents are
+	using where the first chunks of the document are stored, whereas the second version is simply used to see of that portion of the document
+	occurred.
+
+
+	Decrement2min: This algorithm is similiar to the LocalMinima method, but has minor tweaks. Similar to the localMinima algorithm, this one 
+	also has a BoundarySize associated with it called B. Similar to the LocalMinima, this algorithm declares a hash a cutpoint only if the hash
+	is strictly less than the B hases before it and B hashes after it. The second parameter associated with this algorithm is a max chunk size. Once we hit the maximum chunk size, we will 
+	slowly decrease the BoundarySize by a constant factor until we hit a boundary
+
+
 */
 
-public class decrement2min{
+public class Decrement2min{
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 
@@ -19,13 +37,13 @@ public class decrement2min{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
 	//private String directory = "html1/";
-	//private static String directory = "emacs/"; // this is the versioned set for emacs
+	private static String directory = "emacs/"; // this is the versioned set for emacs
 	//private String directory = "sample/"; // this is used to test the validiy of my code
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
 	//private static String directory = "files/";
 	//private static String directory = "javabook/";
-	private static String directory = "gcc/";
+	//private static String directory = "gcc/";
 	//private static String directory = "morph.998/";
 	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
@@ -66,7 +84,7 @@ public class decrement2min{
 
 	private static void driverRun() throws IOException, Exception{
 
-		for (int i = 10;i<=1000;i+=50)
+		for (int i = 310;i<=1000;i+=50)
 		{
 
 			maxBoundary = 4*i; // mas boudnary
@@ -353,11 +371,8 @@ public class decrement2min{
 			2. md5Hases - holds the entire hash values of the document
 			3. localboundary - used to keep track of how the 2min chooses it boundaries
 
-		-- We will start running the 2 min algorithim here
-		-- We have a sliding window and find the local minima or local maxima within the document
-		-- We have a hashTable where we store the values of the boundaries and compare to see if we have
-		-- already seen this
-		-- we also keep track of a counter and misscounter, which we use to compute the ratio
+		-- We will start running the decrement2min algorithim here
+		-- We start off with the regular 2min algo and once we hit the max boundary size, we run decrement2min
 	-------------------------------------------------------------------------------------------------------- */
 	private static void run2min(byte [] array, ArrayList<Long> md5Hashes, int localBoundary) throws Exception{
 		//System.out.println("Inside run2min");
