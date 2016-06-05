@@ -21,9 +21,8 @@ import java.util.zip.*;
 
 */
 
-public class LocalMinimaTiming{
+public class Decrement2min{
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
@@ -36,47 +35,45 @@ public class LocalMinimaTiming{
 	//private static String directory = "files/";
 	//private static String directory = "javabook/";
 	//private static String directory = "gcc/";
+	//private static String directory = "morph.998/";
 	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
 	private static String directory = "../thesis/gcc/";
 
 	
-
+	private static int numOfPieces=0;
 	private static int window;// window is size 3
-	private static int numOfPieces = 0;
+
+
+	private static int maxBoundary;
+	private static int minBoundary;
+	private static int boundaryDivisor = 4; // sets the minimum boundary divisor
+	private static int smoothBoundary; // used to determine when we should smooth
+	private static double smoothParam = .7; // smoothing param
+	// used for debugging
+	//PrintWriter writer;
 
 	public static void main(String [] args) throws IOException, Exception
  	{
- 		//String [] dir = {"morph.998001/","morph.99805/","morph.999001/"};
- 		// String [] dir = {"morph.999001/"};
- 		// //String [] dir = {"morph.998005/"};
- 		// for (String s: dir){
- 		// 	directory = s;
- 		// 	System.out.println(directory);
- 		// 	readFile(directory);
- 		// 	driverRun();
- 		// }
- 		//directory = "morph.99805/";
- 		// 	directory = "morphTest/";
  		readFile(directory);
+ 		// int x = 6;
+ 		// x = (int) (x*smoothParam);
+ 		// System.out.println(x);
+ 	// 	System.out.println("Gcc");
+		// System.out.println("Smooth Param: " + smoothParam);
 		driverRun();
 	}
 
 
+
+	
+
 	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		// readFile(directory);
-		//test();// test the code
-		System.out.println(directory);
-		for (String s : fileList)
-			System.out.println(s);
-		double factor = 1.5;
-		for (int i = 100;i<=1000;i+= 50)
-		{			
-			// we will run the code from boundary from 2-window size
-			// it will also run the code for window sizes upto the one inputted
-			//localBoundry = in.nextInt();
-			//minBoundary = new Long(3*i);
+
+		for (int i = 100;i<=1000;i+=50)
+		{
+
+			maxBoundary = 4*i; // mas boudnary
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -85,19 +82,17 @@ public class LocalMinimaTiming{
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
 			readBytes(localBoundary);
-			numOfPieces = 0; // reset this
-
-		}	
+			numOfPieces = 0;
+		}// end of the for loop
 	}
 
 
+	
 	/*
-		- This method reads the file as a byte stream
-		- Then it calls the content dependant paritioning method to get the chunk points
-		- Also get the time for the methods
+		- This method reads the file using bytes
+		- This is where we run the 2min content dependent partitioning
 	*/
 	private static void readBytes(int localBoundary) throws IOException,Exception{
-
 		File file = null;
 		boolean first = true; // this will be used to ck if it's the first file or not
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
@@ -119,8 +114,8 @@ public class LocalMinimaTiming{
 		int totalSize = array.length(); // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing
-												
 	} // end of the function
+
 
 
 	/* -------------------------------------------------------------------------------------------------------
@@ -166,15 +161,15 @@ public class LocalMinimaTiming{
 		int current = localBoundary;// has to be atlead here to be the local minima
 		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
-		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
-		ArrayList<Long> cutpoints = new ArrayList<Long>(); // this arraylist is used to hold the cutpoints
+		boolean match = false;
+		ArrayList<Long> cutpoints = new ArrayList<Long>(); // new arraylist
 		/*--------------------------------------------------
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-		
+
 			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
 			{							
 				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
@@ -185,35 +180,119 @@ public class LocalMinimaTiming{
 					// 0 if equal
 				// 	// break if this isnt the smallest one
 				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
-					break; // we will break if the value at the current index is not a local minima
+						break;
+				
+				
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
-					(documentStart,Current) is a boundary
+					(documentStart,Current) is either a second smallest or first smallest
 				--------------------------------------------------------------------------------*/
-				if (i == end)
+				if (i == end) // we have reached the end
 				{
-					cutpoints.add(current); // simply add the boundary point to the array
-					start = current + 1;// set this as the beginning of the new boundary
-					current = start + localBoundary // this is where we start finding the new local minima
+					cutpoints.add(md5Hashes.get(current)); // add point to arrayList
+					numOfPieces++; // increment num of pieces
+					documentStart = current + 1;// set this as the beginning of the new boundary
+					start = current + 1;
+					current = start + localBoundary; // this is where we start finding the new local minima
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
-					numOfPieces++; // we have added a cutpoint
 				}
-			}			
-			
+			} // end of for
+
+			// if we have reached our maximum threshold
+			// we will run the decrement 2min
+			if ((current-documentStart + 1) >= maxBoundary){
+				// start is document start
+				// end is current-documentStart + 1
+				int dStart = documentStart; // this is the beginning
+				//System.out.println("in threshold");
+
+				int dEnd = dStart + (current-documentStart+1); // this is the end (note add dStart!)
+				int decrementSize = 1; // initially decrement by one
+				int point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,decrementSize);// will return if a boundary is found, if not then -1
+				while (point == -1){
+					// if we didn't find a boundary, then decrement theSize by one and run again
+					//System.out.println("in while loop for decrement");
+					point = runDecrement2min(dStart,dEnd,md5Hashes,localBoundary,++decrementSize);// will return if a boundary is found, if not then -1
+
+				}
+				cutpoints.add(md5Hashes.get(point)); // add the point to the array
+				numOfPieces++; // increment pieces we got
+				
+				documentStart = point + 1;// set this as the beginning of the new boundary
+				start = point + 1;
+				current = start + localBoundary; // this is where we start finding the new local minima
+				end = current + localBoundary; // this is the new end of the hash boundary
+				match = true; // so we don't increment our window values
+			}	
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
-			if (!match)
-			{
+			if (!match){
 				start++;
 				current++;
 				end++;
 			}
-			match = false; // reset this match
-								
+			//System.out.println(start + " " + current + " " + end);
+			match = false; // reset this match								
 		} // end of the while loop
 
 	} // end of the method
+
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+			-- takes in 5 params
+			-- dStart/dEnd - start/end
+			-- decrementSize -- how much we decrement the boundarySize
+				
+
+			-- We are determing if we can find a boundary with the local boundary decremented by decrementSize
+	-------------------------------------------------------------------------------------------------------- */
+	private static int runDecrement2min(int dStart,int dEnd, ArrayList<Long> md5Hashes, int localBoundary,int decrementSize){
+		//System.out.println("Entering runDecrement");
+		localBoundary = localBoundary - decrementSize; // decrement the localBoundary by the decrement factor
+		int start = dStart; // starting point
+		int current = start + localBoundary;// has to be atlead here to be the local minima
+		int end  = current + localBoundary;  // this is the end of the boundary
+		/*--------------------------------------------------
+			-- Now we run the window over and compute the value
+			-- in each window and store in hash table
+		----------------------------------------------------*/
+		if (localBoundary == 0){
+				// if it's zero, that means we havent found a boundary
+			//System.out.println("In here " + dStart + " " + dEnd + " " + decrementSize);
+			return dStart; // we'll make the start the boundary
+		}
+
+		while (end<dEnd) // loop through till we our end ( which was the max boundary)
+		{ 
+			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
+			{							
+				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselves
+					++i; // we don't wanna compare withourselves		
+
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+						break;
+				/*-----------------------------------------------------------------------------
+					We have reached the end. Meaning all the values within the range 
+					(documentStart,Current) is either a second smallest or first smallest
+				--------------------------------------------------------------------------------*/
+				if (i == end) // we have reached the end
+					return current; // we have found a boundary and return it 
+				
+			} // end of for
+			// go to the next window because we still havent found the boundary
+			start++;
+			current++;
+			end++;	
+			//System.out.println(start + " " + current+" " + end);					
+		} // end of the while loop
+		return -1; // return -1 because we still didn't find a boundary
+	} // end of the method
+
+
+
+
+
 
 /*-------------------------------------------------------------------------------------------------------------------------*/
 // Everything below is the code for reading the file and hashing the string

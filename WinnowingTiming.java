@@ -25,8 +25,6 @@ import java.util.zip.*;
 
 public class WinnowingTiming{
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
-
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
@@ -36,16 +34,13 @@ public class WinnowingTiming{
 	//private String directory = "jdk/";
 	//private String directory = "ny/";
 	//private static String directory = "files/";
-	private static String directory = "gcc/";
+	//private static String directory = "gcc/";
+	private static String directory = "../thesis/gcc/";
+
 	//private static String directory = "sublime/";
 	private static int window;// window is size 3
-	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
-
-	// get the ratio of the coverage over the total size
-	private static double totalSize=0;
-	private static double coverage=0;
 	private static int numOfPieces=0;
-	private static int totalWindowPieces=0;
+
 
 	// used for debugging
 	//PrintWriter writer;
@@ -72,7 +67,7 @@ public class WinnowingTiming{
 
 	private static void driverRun() throws IOException, Exception{
 
-		for (int i = 1000;i<=10000;i+=500)
+		for (int i = 100;i<=1000;i+=50)
 		{
 			//System.out.print("Enter localBoundry:");
 			
@@ -88,18 +83,8 @@ public class WinnowingTiming{
 			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
 			readBytes(localBoundary);
-			// this is the block size per boundary
-			double blockSize = (double)totalSize/(double)numOfPieces;
-			double ratio = (double)coverage/(double)totalSize;
-			//System.out.print("Coverage " + coverage + " Totalsize " + totalSize);
-			//System.out.println( " block size: " + blockSize+ " ratio: "+ratio);
-			System.out.println(blockSize + " " + ratio);
-
-			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
-			coverage = 0;
-			totalSize = 0;
-			numOfPieces = 0;		
+			numOfPieces = 0;
+					
 		}
 		//in.close();		
 	}
@@ -124,22 +109,28 @@ public class WinnowingTiming{
 		hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 
 		// this is where we start the timing 
+		long startTime = System.nanoTime();	
 		determineCutPoints(array,md5Hashes,localBoundary);
-		// This is where we end the timing						
+		// End the timing here			
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime); // this how long this method took
+		int totalSize = array.length(); // get the size
+		double blockSize = (double)totalSize/(double)numOfPieces;
+		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing				
 	} // end of the function
 
 
-/* -------------------------------------------------------------------------------------------------------
-This method:
-	-- Takes in four params: 
-			1. array - this is the byte array that actually holds the document contents
-			2. md5Hashes - will store the hash values of the entire document hashed
-			3. Start - starting point of the hash window (most likely 0)
-			4. End - ending point of the hash window 
-	-- We are hashing the while document here
-	-- We hash the document using a sliding window
-	-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
--------------------------------------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------------------------------------
+	This method:
+		-- Takes in four params: 
+				1. array - this is the byte array that actually holds the document contents
+				2. md5Hashes - will store the hash values of the entire document hashed
+				3. Start - starting point of the hash window (most likely 0)
+				4. End - ending point of the hash window 
+		-- We are hashing the while document here
+		-- We hash the document using a sliding window
+		-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
+	-------------------------------------------------------------------------------------------------------- */
 	private static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
 
 		StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
@@ -208,25 +199,14 @@ This method:
 			if (match){
 				cutpoints.add(prevBoundary); // simply add the boundary
 				match = false;
+				numOfPieces++;
 				//break; // break out of the for loop
 				// if the prev boundary is null or 
 			}
 			start++;
 			current++;						
 		} // end of the while loop
-
-		// -------------------------------------------------------------------------------------------
-		//  we are missing the last boundary, so hash that last value
-		//	We will also check against our values of the strings we already have, and if we encountered this 
-		//	already, then we will simply increment the counter, otherwise we will insert it in the hashtable
-		//	and increase our miss counter
-		//----------------------------------------------------------------------------------------------
-		for (int j = documentStart; j < array.length;++j ){
-			builder.append(array[j]);  // hash the last boundary
-		}
-		String hash = hashString(builder.toString(),"MD5");
-		matches.put(hash,1); // simply insert the chunks in the document
-	
+			
 	} // end of the method
 
 

@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.zip.*;
 
+
 /*
 	Author: Shahzaib Javed
 	Purpose: Research for NYU Tandon University
@@ -20,10 +21,7 @@ import java.util.zip.*;
 		-- Stopping the timer once we have our smaller array of cutpoints.
 
 */
-
-public class LocalMinimaTiming{
-
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
+public class Win2{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
@@ -37,46 +35,59 @@ public class LocalMinimaTiming{
 	//private static String directory = "javabook/";
 	//private static String directory = "gcc/";
 	//private static String directory = "htmltar/";
-	//private static String directory = "sublime/";
-	private static String directory = "../thesis/gcc/";
-
+	private static String directory = "sublime/";
 	
-
+	// get the ratio of the coverage over the total size
+	private static int numOfPieces=0;
 	private static int window;// window is size 3
-	private static int numOfPieces = 0;
+	//private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
+
+
+	private static int maxBoundary;
+	private static int minBoundary;
+	private static int boundaryDivisor = 4; // sets the minimum boundary divisor
+	private static int smoothBoundary; // used to determine when we should smooth
+	private static double smoothParam = .7; // smoothing param
+	// used for debugging
+	//PrintWriter writer;
 
 	public static void main(String [] args) throws IOException, Exception
  	{
- 		//String [] dir = {"morph.998001/","morph.99805/","morph.999001/"};
- 		// String [] dir = {"morph.999001/"};
- 		// //String [] dir = {"morph.998005/"};
- 		// for (String s: dir){
- 		// 	directory = s;
- 		// 	System.out.println(directory);
- 		// 	readFile(directory);
- 		// 	driverRun();
- 		// }
- 		//directory = "morph.99805/";
- 		// 	directory = "morphTest/";
- 		readFile(directory);
-		driverRun();
+ 		String [] dir = {"morph.998001/","morph.99805/","morph.999001/"};
+ 		for (String s: dir){
+ 			directory = s;
+ 			System.out.println(directory);
+ 			readFile(directory);
+ 			driverRun();
+ 		}
+		// readFile(directory);
+		// // driverRun();
+	 	// 	directory = "morph.999001/";
+	 	// 	readFile(directory);
+	 	// 	driverRun();
+		// }
+		//getBlockFrequency();
+			//System.out.println("TESTIBG")
 	}
 
 
 	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		// readFile(directory);
-		//test();// test the code
 		System.out.println(directory);
 		for (String s : fileList)
 			System.out.println(s);
+		System.out.println("max length = 4*i");
 		double factor = 1.5;
-		for (int i = 100;i<=1000;i+= 50)
-		{			
+		for (int i = 100;i<=1000;i+=50)
+		{
+			//System.out.print("Enter localBoundry:");
+			
 			// we will run the code from boundary from 2-window size
 			// it will also run the code for window sizes upto the one inputted
 			//localBoundry = in.nextInt();
-			//minBoundary = new Long(3*i);
+			//smoothBoundary = i/2; // we will smooth the boundary when we reach here
+			//minBoundary = 2*i;
+			maxBoundary = 4*i;
+
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -84,20 +95,18 @@ public class LocalMinimaTiming{
 					-- We will use the local boundary for all the way up to the value the user entered
 		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
+			// run the 2min algorithm
 			readBytes(localBoundary);
-			numOfPieces = 0; // reset this
-
-		}	
+			numOfPieces = 0;
+		}// end of the for loop
 	}
 
 
 	/*
-		- This method reads the file as a byte stream
-		- Then it calls the content dependant paritioning method to get the chunk points
-		- Also get the time for the methods
+		- This method reads the file using bytes
+		- This is where we run the 2min content dependent partitioning
 	*/
 	private static void readBytes(int localBoundary) throws IOException,Exception{
-
 		File file = null;
 		boolean first = true; // this will be used to ck if it's the first file or not
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
@@ -119,7 +128,6 @@ public class LocalMinimaTiming{
 		int totalSize = array.length(); // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing
-												
 	} // end of the function
 
 
@@ -152,6 +160,22 @@ public class LocalMinimaTiming{
 		}
 	}
 
+	/*
+		- This method basically finds the minimum within the range
+	*/
+	private static int findMin(int start,int end,ArrayList<Long> md5Hashes){
+		int min = start++; // set the min to the first element of the array and increment start
+		while (start <= end){
+			// if the new boundary is not greater than the current min (aka its the new min) set it to the new min
+			if (!(md5Hashes.get(start).compareTo(md5Hashes.get(min)) > 0))
+				min = start;
+			start++;
+		}
+		return min;
+
+	}
+
+
 	/* -------------------------------------------------------------------------------------------------------
 	This method:
 		--	Takes in three paramters:
@@ -159,22 +183,27 @@ public class LocalMinimaTiming{
 			2. md5Hases - holds the entire hash values of the document
 			3. localboundary - used to keep track of how the 2min chooses it boundaries
 
-		-- We are simply finding the boundaries of the file using 2min and simply storing them. Nothing more!
+		-- We are simply finding the boundaries of the file using tweaked version of the localMinima which i call 2Win and simply storing them. Nothing more!
 	-------------------------------------------------------------------------------------------------------- */
 	private static void determineCutPoints(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 		int start = 0; // starting point
+		//System.out.println("TESTING" + localBoundary);
+		//int tempBoundary = localBoundary; // this one will be modified for the smoothing
 		int current = localBoundary;// has to be atlead here to be the local minima
+		int boundaryMisses = 0; // keep track of boundary misses
+
 		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
-		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
-		ArrayList<Long> cutpoints = new ArrayList<Long>(); // this arraylist is used to hold the cutpoints
+		boolean match = false;
+
+		ArrayList<Long> cutpoints = new ArrayList<Long>(); // used to store the points for the documents
 		/*--------------------------------------------------
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-		
+
 			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
 			{							
 				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
@@ -184,23 +213,42 @@ public class LocalMinimaTiming{
 					// <0 if less than
 					// 0 if equal
 				// 	// break if this isnt the smallest one
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
-					break; // we will break if the value at the current index is not a local minima
-				/*-----------------------------------------------------------------------------
-					We have reached the end. Meaning all the values within the range 
-					(documentStart,Current) is a boundary
-				--------------------------------------------------------------------------------*/
-				if (i == end)
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) {
+						boundaryMisses++;
+						break;
+				}
+				
+				if (i == end) // we have reached the end
 				{
-					cutpoints.add(current); // simply add the boundary point to the array
-					start = current + 1;// set this as the beginning of the new boundary
-					current = start + localBoundary // this is where we start finding the new local minima
+					cutpoints.add(md5Hashes.get(current));
+					numOfPieces++;
+
+					documentStart = current + 1;// set this as the beginning of the new boundary
+					start = current + 1;
+					current = start + localBoundary; // this is where we start finding the new local minima
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
-					numOfPieces++; // we have added a cutpoint
+					boundaryMisses = 0;
 				}
-			}			
-			
+			} // end of for
+
+			// if we have reached our maximum threshold
+			// we will see if we have a second boundary, if yes, then make that the boundary
+			// otherwise now we will make either the first minima or the second minima the boundary
+			if ((current-documentStart + 1) >= maxBoundary){
+				
+				// find smallest in this range ( most right occurance)
+				int point = findMin(documentStart,current,md5Hashes);
+				cutpoints.add(md5Hashes.get(point));
+				numOfPieces++;
+					
+				documentStart = point + 1;// set this as the beginning of the new boundary
+				start = point + 1;
+				current = start + localBoundary; // this is where we start finding the new local minima
+				end = current + localBoundary; // this is the new end of the hash boundary
+				match = true; // so we don't increment our window values
+				boundaryMisses = 0;			
+			}	
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
@@ -214,6 +262,13 @@ public class LocalMinimaTiming{
 		} // end of the while loop
 
 	} // end of the method
+
+
+
+
+
+
+
 
 /*-------------------------------------------------------------------------------------------------------------------------*/
 // Everything below is the code for reading the file and hashing the string
