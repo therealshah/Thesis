@@ -23,7 +23,6 @@ import java.util.zip.*;
 
 public class LocalMinimaTiming{
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
@@ -39,8 +38,6 @@ public class LocalMinimaTiming{
 	//private static String directory = "htmltar/";
 	//private static String directory = "sublime/";
 	private static String directory = "../thesis/gcc/";
-
-	
 
 	private static int window;// window is size 3
 	private static int numOfPieces = 0;
@@ -58,25 +55,18 @@ public class LocalMinimaTiming{
  		// }
  		//directory = "morph.99805/";
  		// 	directory = "morphTest/";
- 		readFile(directory);
-		driverRun();
+ 		for (int i = 0; i < 3; ++i){
+			readFile(directory);
+			System.out.println("======================== Run " + i + " " + fileList.get(0));
+			driverRun(); // driver for taking in inputs and running the 2min method
+		}
 	}
 
 
 	private static void driverRun() throws IOException, Exception{
-		//readDir(); // directories dont change
-		// readFile(directory);
-		//test();// test the code
-		System.out.println(directory);
-		for (String s : fileList)
-			System.out.println(s);
-		double factor = 1.5;
+
 		for (int i = 100;i<=1000;i+= 50)
 		{			
-			// we will run the code from boundary from 2-window size
-			// it will also run the code for window sizes upto the one inputted
-			//localBoundry = in.nextInt();
-			//minBoundary = new Long(3*i);
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -116,7 +106,7 @@ public class LocalMinimaTiming{
 		// This is where we end the timing
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
-		int totalSize = array.length(); // get the size
+		int totalSize = array.length; // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing
 												
@@ -192,9 +182,9 @@ public class LocalMinimaTiming{
 				--------------------------------------------------------------------------------*/
 				if (i == end)
 				{
-					cutpoints.add(current); // simply add the boundary point to the array
+					cutpoints.add(md5Hashes.get(current)); // simply add the boundary point to the array
 					start = current + 1;// set this as the beginning of the new boundary
-					current = start + localBoundary // this is where we start finding the new local minima
+					current = start + localBoundary; // this is where we start finding the new local minima
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
 					numOfPieces++; // we have added a cutpoint

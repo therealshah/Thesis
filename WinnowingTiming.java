@@ -57,8 +57,11 @@ public class WinnowingTiming{
 		// 	readFile(directory);
 		// 	driverRun();
 		// }
-		readFile(directory);
-		driverRun();
+		for (int i = 0; i < 3; ++i){
+			readFile(directory);
+			System.out.println("======================== Run " + i + " " + fileList.get(0));
+			driverRun(); // driver for taking in inputs and running the 2min method
+		}
 
 	
 	}
@@ -69,11 +72,6 @@ public class WinnowingTiming{
 
 		for (int i = 100;i<=1000;i+=50)
 		{
-			//System.out.print("Enter localBoundry:");
-			
-			// we will run the code from boundary from 2-window size
-			// it will also run the code for window sizes upto the one inputted
-			//localBoundry = in.nextInt();
 			int localBoundary = i;
 			window = 12; // set value
 		/*--------------------------------------------------------------------------------------------
@@ -86,7 +84,6 @@ public class WinnowingTiming{
 			numOfPieces = 0;
 					
 		}
-		//in.close();		
 	}
 
 
@@ -114,7 +111,7 @@ public class WinnowingTiming{
 		// End the timing here			
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
-		int totalSize = array.length(); // get the size
+		int totalSize = array.length; // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing				
 	} // end of the function
@@ -197,7 +194,7 @@ This method:
 			}
 			// we have found a boundary, so just hash it 
 			if (match){
-				cutpoints.add(prevBoundary); // simply add the boundary
+				cutpoints.add(md5Hashes.get(prevBoundary)); // simply add the boundary
 				match = false;
 				numOfPieces++;
 				//break; // break out of the for loop

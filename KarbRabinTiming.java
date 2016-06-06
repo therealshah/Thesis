@@ -44,9 +44,11 @@ public class KarbRabinTiming{
 
 	public static void main(String [] args) throws IOException, Exception{
 		
-		readFile(directory);
-		driverRun(); // driver for taking in inputs and running the 2min method
-		//System.out.println("TESTIBG")
+		for (int i = 0; i < 3; ++i){
+			System.out.println("======================== Run " + i);
+			readFile(directory);
+			driverRun(); // driver for taking in inputs and running the 2min method
+		}
 	}
 
 
@@ -54,14 +56,14 @@ public class KarbRabinTiming{
 		window = 12;
 		//modValue = new BigInteger("7",10); // This is the remainder that we will be comparing with
 		Long remainder = new Long(7); // this is the remainder that we will be comparing with
-		Long divisor;
+		//Long divisor;
 		for (int i = 100;i<=1000;i+=50)
 		{
 			/*--------------------------------------------------------------------------------------------
 			-- Run the karb rabin algorithm for the set mod values
 			-- We will use the local boundary for all the way up to the value the user entered
 			-------------------------------------------------------------------------------------------------*/
-			divisor = new Long(i); // this will be used to mod the results
+			long divisor = i;
 			System.out.print( i+" ");
 			readBytes(divisor,remainder); // run the karb rabin algorithm
 			numOfPieces = 0; // reset this
@@ -74,7 +76,7 @@ public class KarbRabinTiming{
 		- Then it calls the content dependant paritioning method to get the chunk points
 		- Also get the time for the methods
 	*/
-	private static void readBytes(Long divisor, Long remainder) throws IOException,Exception{
+	private static void readBytes(long divisor, long remainder) throws IOException,Exception{
 		File file = null;
 		boolean first = true; // this will be used to ck if it's the first file or not
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
@@ -93,7 +95,7 @@ public class KarbRabinTiming{
 		// This is where we end the timing	
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
-		int totalSize = array.length(); // get the size
+		int totalSize = array.length; // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing
 							
@@ -138,7 +140,7 @@ public class KarbRabinTiming{
 
 		-- We are simply finding the boundaries of the file using karbRabin and simply storing them. Nothing more!
 	-------------------------------------------------------------------------------------------------------- */
-	private static void determineCutPoints(byte[] array, ArrayList<Long> md5Hashes,Long divisor,Long remainder){
+	private static void determineCutPoints(byte[] array, ArrayList<Long> md5Hashes,long divisor,long remainder){
 
 		ArrayList<Long> cutpoints = new ArrayList<Long>(); // used to hold all the cutpoints of the document
 		// loop through all the values in the document

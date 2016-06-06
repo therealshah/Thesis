@@ -46,31 +46,35 @@ public class TdddTiming{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		readFile(directory);
-		driverRun(); // driver for taking in inputs and running the 2min method
+		for (int i = 0; i < 3; ++i){
+			readFile(directory);
+			System.out.println("======================== Run " + i + " " + fileList.get(0));
+			driverRun(); // driver for taking in inputs and running the 2min method
+		}
 	}
 
 
 	private static void driverRun() throws IOException, Exception{
 		window = 12;
-		Long divisor1;
-		Long divisor2; // second mod value we will be using
-		Long divisor3;
-		Long remainder = new Long(7); // this is the remainder that we will be comparing with
-		Long minBoundary;
-		Long maxBoundary;
-		System.out.println("gcc");
+		// Long divisor1;
+		// Long divisor2; // second mod value we will be using
+		// Long divisor3;
+		//long remainder = new Long(7); // this is the remainder that we will be comparing with
+		Long remainder = new Long(7);
+		// Long minBoundary;
+		// Long maxBoundary;
+		//System.out.println("gcc");
 		double factor = 1.5;
 		for (int i = 100;i<=1000; i+= 50 )
 		{
 			//System.out.print("Enter localBoundry:");
-			minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
-			maxBoundary = new Long(4*i); // we will set this as the maximum boundary
-			divisor1 = new Long(i); // this will be used to mod the results
-			divisor2 = new Long(i/2); // the backup divisor is half the original divisor
-			divisor3 = new Long(i/4);
+			long minBoundary  = i;// we will set the mod value as the minimum boundary
+			long maxBoundary = 4*i; // we will set this as the maximum boundary
+			long divisor1 = i;// this will be used to mod the results
+			long divisor2 = i/2; // the backup divisor is half the original divisor
+			long divisor3 = i/4;
 			System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
-			runBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);
+			readBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);
 			numOfPieces = 0; // reset the num of pieces
 		}
 	}
@@ -84,11 +88,11 @@ public class TdddTiming{
 			minBoundary/maxBoundary - min/ max boundaries for the chunks
 	
 	*/
-	private static void readBytes(int window, Long divisor1, Long divisor2,Long divisor3, Long remainder,Long minBoundary,Long maxBoundary) throws IOException,Exception{
+	private static void readBytes(int window, long divisor1, long divisor2,long divisor3, long remainder,long minBoundary,long maxBoundary) throws IOException,Exception{
 
 		boolean first = true; // this will be used to ck if it's the first file or not
 		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
-		fileName = fileList.get(0); // only get the first file
+		String fileName = fileList.get(0); // only get the first file
 		//System.out.println("Reading file: " + fileName);
 		Path p = Paths.get(directory + fileName); // get the full path of the file that we will be reading
 		byte [] array = Files.readAllBytes(p); // read the whole file in byte form							
@@ -102,7 +106,7 @@ public class TdddTiming{
 		// End the timing here			
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
-		int totalSize = array.length(); // get the size
+		int totalSize = array.length; // get the size
 		double blockSize = (double)totalSize/(double)numOfPieces;
 		System.out.println(blockSize + " " + duration); // printing the avgBlockSize along with the timing					
 	} // end of the function
@@ -149,16 +153,17 @@ public class TdddTiming{
 
 		-- We are simply choping up the first file
 	-------------------------------------------------------------------------------------------------------- */
-	private static void determineCutPoints(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long divisor3,Long remainder
-		,Long minBoundary,Long maxBoundary){
+	private static void determineCutPoints(byte[] array, ArrayList<Long> md5Hashes, long divisor1, long divisor2,long divisor3,long remainder
+		,long minBoundary,long maxBoundary){
 
 		boolean match = false; // used to ck if we encountered a match
 		int documentStart = 0; // used to keep track of where the boundaries are
 		int backUpBreakPoint = -1; // used to store the backup breakpoint
 		int secondBackUpBreakPoint = -1; // this is the second backup point with the divisor3
 		ArrayList<Long> cutpoints = new ArrayList<Long>(); // used to hold just the cutpoints
+		int i = documentStart + (int)minBoundary - 1; // so we start at the minimum
 		// loop through all the values in the document
-		for (int i = 0; i < md5Hashes.size();++i)
+		for (; i < md5Hashes.size();++i)
 		{ 	
 			if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
 				continue;
@@ -169,7 +174,8 @@ public class TdddTiming{
 
 			if (md5Hashes.get(i)%divisor1 == remainder) // ck if this equals the mod value
 			{
-				cutpoints.add(i); // add this as the cutpoint for the document
+				cutpoints.add(md5Hashes.get(i)); // add this as the cutpoint for the document
+				numOfPieces++;
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // second backup point reset it!
@@ -190,11 +196,12 @@ public class TdddTiming{
 			    else
 			    	point = i; // else this current value of i is the breakpoint
 
-				cutpoints.add(point); // add this to the boundary
+				cutpoints.add(md5Hashes.get(point)); // add this to the boundary
+				numOfPieces++;
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // reset second backup break point
-				i = point ; // we start i from here again
+				i = documentStart + (int)minBoundary - 2 ; // we start i from here again // subtract 2 because we will increment i
 			}
 								
 		} // end of the for loop
