@@ -15,8 +15,7 @@ public class ReadFile{
 		File [] listOfFiles = folder.listFiles();
 
 		// clear the fileList for the new files to be added in
-		fileList.clear();
-
+		fileList.clear(); // clear the old list of files
 		for (File file : listOfFiles)
 		{
 			if (file.isFile())

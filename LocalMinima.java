@@ -33,7 +33,10 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/periodic/";
+	//private static String directory = "../thesis/datasets/1389blog.com/";
+	private static String directory = "../thesis/datasets/.pequannock.org/";
+
+	//private static String directory = "../thesis/periodic/";
 
 
 	
@@ -44,9 +47,11 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 20; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
+
+	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -54,9 +59,21 @@ public class LocalMinima{
 	public static void main(String [] args) throws IOException, Exception
  	{
 
- 		ReadFile.readFile(directory,fileList);
- 		preliminaryStep();
-		driverRun();
+ 		// ReadFile.readFile(directory,fileList);
+ 		// System.out.println(fileList.get(0) + " " + fileList.get(1));
+
+ 	 // 	preliminaryStep(directory);
+ 	 // 	startCDC();
+ 		int [] arr = {1,2,3};
+ 		for (int i : arr){
+ 			System.out.println("document_date_selection = " + i);
+ 			document_date_selection = i;
+ 			runArchiveSet();
+ 			fileArray.clear();
+ 			hashed_File_List.clear();
+ 			fileList.clear();
+ 		}
+
 	}
 
 
@@ -65,13 +82,13 @@ public class LocalMinima{
 		- This reads the file and hashses the document, which are then stored in our arrayLisrs
 		- we do this before, so we dont have to hash again later ( which is time consuming)
 	*/
-	private static void preliminaryStep() throws Exception{
+	private static void preliminaryStep(String dir) throws Exception{
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
 		// prepoccessing step to hash the document, since we dont need to hash the document again
 		for (int i = 0; i < fileList.size(); ++i){
-			System.out.println("preliminaryStep " + fileList.get(i));
-			Path p = Paths.get(directory+fileList.get(i)); // read this file
+			//System.out.println("preliminaryStep " + fileList.get(i));
+			Path p = Paths.get(dir+fileList.get(i)); // read this file
 			byte [] array = Files.readAllBytes(p); // read the file in bytes
 			//System.out.println(array.length);
 
@@ -83,7 +100,7 @@ public class LocalMinima{
 			fileArray.add(array);
 			hashed_File_List.add(md5Hashes);
 		}
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+		totalSize = fileArray.get(3).length; // note we only care about the size of the second file since that's the file we are measuring
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
@@ -95,15 +112,17 @@ public class LocalMinima{
 		byte [] array = Files.readAllBytes(p); // read the file into a byte array
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
-		int localBoundary = 1000;
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+		
+		int localBoundary = 500;
+		//System.out.println("Running Likelihood for " + localBoundary);
 		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
 		// now output the block sizes, along with there frequencies and probilities
 		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
 			// output the block freq
 			double prob = (double)tuple.getValue() / (double)totalBlocks;
 			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
-		}
+		}	
 	}
 
 	/* -------------------------------------------------------------------------------------------------------
@@ -186,7 +205,75 @@ public class LocalMinima{
 		return ++counter;
 	} // end of the method
 
-	private static void driverRun() throws IOException, Exception{
+
+	/*
+		- This method is used has a helper method to run the algo for the archive dataset
+		- Note the archive set has multiple directories ( one for each url )
+		- So Read all of the directories in first and for each directory run the code
+	*/
+	private static void runArchiveSet() throws Exception{
+
+		directory = "../thesis/datasets/";
+		File file = new File(directory);
+		String[] directory_list = file.list(new FilenameFilter() {
+		  @Override
+		  public boolean accept(File current, String name) {
+		    return new File(current, name).isDirectory(); // make sure its a directory
+		  }
+		});
+
+		int totalRuns = 0; // used to avg the runs in the end
+		int sets = 200;
+		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+			total_iter_count++;
+
+		//System.out.println(Arrays.toString(directory_list));
+		long [] block_size_list = new long [total_iter_count];
+		double [] ratio_size_list = new double [total_iter_count];
+	
+		// loop through and run the cdc for each directory
+		for (String dir : directory_list){
+			// We have 4 files in each directory
+			// current, last_week, last_month, last_year
+			// read all the files in the directory
+			//System.out.println(dir);
+			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
+
+			// now loop through and call each pair of files with the current one (index 0)
+			// for (int i = 1; i < fileArray.size(); ++i){
+			// 	totalRuns++;
+			// 	totalSize = fileArray.get(i).length; // get the length of the file we will be running it against!
+			// 	startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(i),hashed_File_List.get(0),hashed_File_List.get(i));
+			// }
+			totalRuns++;
+			totalSize = fileArray.get(document_date_selection).length; // get the length of the file we will be running it against!
+			startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(document_date_selection),hashed_File_List.get(0),hashed_File_List.get(document_date_selection));
+			// // clear the fileList and hashed_file_list array
+			fileArray.clear();
+			hashed_File_List.clear();
+			fileList.clear();
+			if (--sets <= 0)
+				break;
+		} // end of directory list for loop
+
+
+		// now output the avged value for all the runs
+		System.out.println(Arrays.toString(ratio_size_list));
+		int index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list[index]/(double)totalRuns;
+			double ratio = ratio_size_list[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+	}
+
+	/*
+		- This is basically sets up everything and calls the actual contentDependant methods
+	*/
+	private static void startCDC() throws Exception{
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			int localBoundary = i;
@@ -203,6 +290,36 @@ public class LocalMinima{
 		}	
 	}
 
+	/*
+		- Overloaded method just for the internet archive dataset
+		- The first two params hold the block size and ratioSize respectively (for all the runnings)
+		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+	*/
+	private static void startCDC(long [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
+	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+		int index = 0; // used to traverse the two lists
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+		{			
+			int localBoundary = i;
+			// System.out.print( i+" ");
+			storeChunks(array1,md5Hashes1,localBoundary); // cut up the first file and store it
+			run2min(array2,md5Hashes2,localBoundary); // call the method again, but on the second file only
+			// this is the block size per boundary
+			double blockSize = (double)totalSize/(double)numOfPieces;
+			double ratio = (double)coverage/(double)totalSize;
+
+			// extra step, add the data back into the list
+			block_size_list[index] += blockSize;
+			ratio_size_list[index] += ratio;
+			++index;
+			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
+			matches.clear();
+			coverage = 0;
+			numOfPieces = 0; 		
+		}
+	}
+
+
 
 	/*
 		Read in all the files and loop through all the files
@@ -212,7 +329,7 @@ public class LocalMinima{
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+		run2min(fileArray.get(3),hashed_File_List.get(3),localBoundary); // call the method again, but on the second file only
 	} // end of the function
 
 
@@ -230,7 +347,6 @@ public class LocalMinima{
 		int current = localBoundary;// has to be atlead here to be the local minima
 		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
-		int maximaChoice = -1; // used to determine whether to use local min or local max ( 0 for min, 1 for max)
 		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
 		StringBuilder builder = new StringBuilder(); // this is used to store the original document content
 		/*--------------------------------------------------
@@ -239,16 +355,18 @@ public class LocalMinima{
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-		
+			//System.out.println("Checking " + end + " " + md5Hashes.size());
 			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
 			{							
-				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
-					++i; // we don't wanna compare withourselves		
+				if (i == current){ // we are looking for strictly less than, so we don't want to compare with ourselve
+					i++;
+				}		
 				// CompareTo returns
 					// >0 if greater
 					// <0 if less than
 					// 0 if equal
 				// 	// break if this isnt the smallest one
+				//System.out.println(current + " " + i + " " + md5Hashes.size());
 				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
@@ -271,9 +389,9 @@ public class LocalMinima{
 					end = current + localBoundary; // this is the new end of the hash boundary
 					builder.setLength(0); // reset the stringbuilder for the next round
 					match = true; // so we don't increment our window values
+					break;
 				}
-			}			
-			
+			}						
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match)
@@ -282,9 +400,7 @@ public class LocalMinima{
 				current++;
 				end++;
 			}
-			match = false; // reset this match
-			maximaChoice = -1; //reset this
-								
+			match = false; // reset this match								
 		} // end of the while loop
 
 		// -------------------------------------------------------------------------------------------
@@ -334,8 +450,9 @@ public class LocalMinima{
 		{ 
 			for (int i = start; i <= end; ++i)
 			{							
-				if (i==current) // we don't want to compare with ourselves
-					++i;	
+				if (i == current){ // we are looking for strictly less than, so we don't want to compare with ourselve
+					++i; // we want continute and go to next value. Not we dont just increment i because if it was at the end - 1 value, incrementing it will put it at end and crash
+				}		
 
 				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
 					break; // we will break if the value at the current index is not a local minima
@@ -366,6 +483,7 @@ public class LocalMinima{
 					builder.setLength(0); // reset the stringbuilder to get the next window
 					match = true; //  so we don't increment our window again
 					numOfPieces++; // increment the number of pieces we got
+					break; // we break because WE ARE CHANGING THE END 
 				}
 			}					
 			// go to the next window only if we didnt find a match

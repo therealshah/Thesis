@@ -64,9 +64,10 @@ public class Tddd{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		ReadFile.readFile(directory,fileList);
-		preliminaryStep();
-		driverRun(); // driver for taking in inputs and running the 2min method
+		// ReadFile.readFile(directory,fileList);
+		// preliminaryStep();
+		// startCDC(); // driver for taking in inputs and running the 2min method
+		runArchiveSet();
 	}
 
 
@@ -75,13 +76,13 @@ public class Tddd{
 		- This reads the file and hashses the document, which are then stored in our arrayLisrs
 		- we do this before, so we dont have to hash again later ( which is time consuming)
 	*/
-	private static void preliminaryStep() throws Exception{
+	private static void preliminaryStep(String dir) throws Exception{
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
 		// prepoccessing step to hash the document, since we dont need to hash the document again
 		for (int i = 0; i < fileList.size(); ++i){
-			System.out.println("preliminaryStep " + fileList.get(i));
-			Path p = Paths.get(directory+fileList.get(i)); // read this file
+			//System.out.println("preliminaryStep " + fileList.get(i));
+			Path p = Paths.get(dir+fileList.get(i)); // read this file
 			byte [] array = Files.readAllBytes(p); // read the file in bytes
 			//System.out.println(array.length);
 
@@ -196,13 +197,68 @@ public class Tddd{
 		return ++counter; // increment the block count
 	} // end of the method
 
-	private static void driverRun() throws IOException, Exception{
-		// Long remainder = new Long(7); // this is the remainder that we will be comparing with
-		// Long divisor1;
-		// Long divisor2; // second mod value we will be using
-		// Long divisor3;
-		// Long minBoundary;
-		// Long maxBoundary;
+
+	/*
+		- This method is used has a helper method to run the algo for the archive dataset
+		- Note the archive set has multiple directories ( one for each url )
+		- So Read all of the directories in first and for each directory run the code
+	*/
+	private static void runArchiveSet() throws Exception{
+
+		directory = "../thesis/datasets/";
+		File file = new File(directory);
+		String[] directory_list = file.list(new FilenameFilter() {
+		  @Override
+		  public boolean accept(File current, String name) {
+		    return new File(current, name).isDirectory(); // make sure its a directory
+		  }
+		});
+
+		int totalRuns = 0; // used to avg the runs in the end
+		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+			total_iter_count++;
+
+		//System.out.println(Arrays.toString(directory_list));
+		long [] block_size_list = new long [total_iter_count];
+		long [] ratio_size_list = new long [total_iter_count];
+	
+		// loop through and run the cdc for each directory
+		for (String dir : directory_list){
+			// We have 4 files in each directory
+			// current, last_week, last_month, last_year
+			// read all the files in the directory
+			//System.out.println(dir);
+			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
+
+			// now loop through and call each pair of files with the current one (index 0)
+			for (int i = 1; i < fileArray.size(); ++i){
+				totalRuns++;
+				//System.out.println("Running it against " + fileList.get(0) + " " + fileList.get(i));
+				totalSize = fileArray.get(i).length; // get the length of the file we will be running it against!
+				startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(i),hashed_File_List.get(0),hashed_File_List.get(i));
+			}
+			// clear the fileList and hashed_file_list array
+			fileArray.clear();
+			hashed_File_List.clear();
+			fileList.clear();
+		} // end of directory list for loop
+
+
+		// now output the avged value for all the runs
+		int index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list[index]/(double)totalRuns;
+			double ratio = ratio_size_list[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+	}
+
+
+
+	private static void startCDC() throws IOException, Exception{
 		long remainder = 7;
 		for (int i = startBoundary;i<=endBoundary; i+=increment)
 		{
@@ -230,6 +286,39 @@ public class Tddd{
 		}
 	}
 
+	/*
+		- Overloaded method just for the internet archive dataset
+		- The first two params hold the block size and ratioSize respectively (for all the runnings)
+		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+	*/
+	private static void startCDC(long [] block_size_list, long [] ratio_size_list,byte[] array1,byte[] array2,
+	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+		long remainder = 7; // this is the remainder that we will be comparing with
+		int index = 0; // used to traverse the two lists
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+		{			
+			long minBoundary  = i; // we will set the mod value as the minimum boundary
+			long maxBoundary = 4*i; // we will set this as the maximum boundary
+			long divisor1 = i; // this will be used to mod the results
+			long divisor2 = i/2; // the backup divisor is half the original divisor
+			long divisor3 = i/4;
+			// System.out.print( i+" ");
+			storeChunks(array1,md5Hashes1,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // cut up the first file and store it
+			runTddd(array2,md5Hashes2,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // call the method again, but on the second file only
+			// this is the block size per boundary
+			double blockSize = (double)totalSize/(double)numOfPieces;
+			double ratio = (double)coverage/(double)totalSize;
+
+			// extra step, add the data back into the list
+			block_size_list[index] += blockSize;
+			ratio_size_list[index] += ratio;
+			++index;
+			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
+			matches.clear();
+			coverage = 0;
+			numOfPieces = 0; 		
+		}
+	}
 
 
 

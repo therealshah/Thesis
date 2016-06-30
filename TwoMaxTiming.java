@@ -191,7 +191,8 @@ public class TwoMaxTiming{
 					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
-					maxPoint = -1; // reset the maxPoint
+					maxPoint = -1; // reset the maxPoint\
+					break;
 				}
 			}
 

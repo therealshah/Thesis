@@ -161,6 +161,7 @@ public class Decrement2minTiming{
 					current = start + localBoundary; // this is where we start finding the new local minima
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
+					break;
 				}
 			} // end of for
 

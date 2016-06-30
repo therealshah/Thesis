@@ -46,9 +46,17 @@ public class TwoMax{
 	private static double totalSize=0;
 	private static double coverage=0;
 	private static int numOfPieces=0;
-	private static int window;// window is size 3
+	private static int window = 12;
 	private static int maxBoundary;
 	private static int multiplier;
+
+	// variables for the boundary size
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
+	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
+	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
+
 
 	public static void main(String [] args) throws IOException, Exception
  	{
@@ -164,18 +172,38 @@ public class TwoMax{
 		return ++counter;
 	} // end of the method
 
+	/*
+		- This reads the file and hashses the document, which are then stored in our arrayLisrs
+		- we do this before, so we dont have to hash again later ( which is time consuming)
+	*/
+	private static void preliminaryStep(String dir) throws Exception{
+		int start = 0; // start of the sliding window
+		int end = start + window - 1; // ending boundary
+		// prepoccessing step to hash the document, since we dont need to hash the document again
+		for (int i = 0; i < fileList.size(); ++i){
+			System.out.println("preliminaryStep " + fileList.get(i));
+			Path p = Paths.get(dir+fileList.get(i)); // read this file
+			byte [] array = Files.readAllBytes(p); // read the file in bytes
+			//System.out.println(array.length);
+
+			ArrayList<Long> md5Hashes = new ArrayList<Long>(); // make a new arrayList for this document
+			HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+			
+			// add the fileArray and hashedFile to our lists so we can use them later to run the algorithms
+			// note we hash and read file before, so we don't have to do it again
+			fileArray.add(array);
+			hashed_File_List.add(md5Hashes);
+		}
+		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+	}
 
 
-	private static void driverRun() throws IOException, Exception{
-		for (int i = 50;i<=1000; i+=50)
+
+	private static void startCDC() throws IOException, Exception{
+		for (int i = startBoundary;i<=endBoundary; i+=increment)
 		{
 			maxBoundary = multiplier*i;
 			int localBoundary = i;
-			window = 12; // set value
-		/*--------------------------------------------------------------------------------------------
-					-- Run the 2 min algorithm for all the way upto the value the user enters
-					-- We will use the local boundary for all the way up to the value the user entered
-		-------------------------------------------------------------------------------------------------*/
 			System.out.print( localBoundary+" ");
 			// run the 2min algorithm
 			readBytes(localBoundary);
@@ -192,6 +220,37 @@ public class TwoMax{
 		}	
 	}
 
+	/*
+		- Overloaded method just for the internet archive dataset
+		- The first two params hold the block size and ratioSize respectively (for all the runnings)
+		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+	*/
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
+	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+		int index = 0; // used to traverse the two lists
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+		{	
+			maxBoundary = multiplier*i;
+			int localBoundary = i;
+			// System.out.print( i+" ");
+			storeChunks(array1,md5Hashes1,localBoundary); // cut up the first file and store it
+			run2min(array2,md5Hashes2,localBoundary); // call the method again, but on the second file only
+			// this is the block size per boundary
+			double blockSize = (double)totalSize/(double)numOfPieces;
+			double ratio = (double)coverage/(double)totalSize;
+
+			// extra step, add the data back into the list
+			block_size_list[index] += blockSize;
+			ratio_size_list[index] += ratio;
+			++index;
+			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
+			matches.clear();
+			coverage = 0;
+			numOfPieces = 0; 		
+		}
+	}
+
+
 
 	/*
 		- This method 
@@ -199,36 +258,10 @@ public class TwoMax{
 			-- calls the chunkingMethod
 			-- and runs and finds the boundary points
 	*/
-	private static void readBytes(int localBoundary) throws IOException,Exception{
-		/*---------------------------------------------------------------------------------
-			Read in all the files and loop through all the files
-			We will first cut the first document into chuncks and store it
-			Then we will hash the next document and see how much coverage we get (how many matches we get)
-		--------------------------------------------------------------------------------------*/
-		File file = null;
-		boolean first = true; // this will be used to ck if it's the first file or not
-		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
-		for (String fileName: fileList){
-
-			Path p = Paths.get(directory+fileName);
-			// read the file
-			byte [] array = Files.readAllBytes(p); // read the file in bytes
-			int start = 0; // start of the sliding window
-			int end = start + window - 1; // ending boundary
-			HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-			// if this is the first document, we will simply get the boundary chunks and store them
-			if (first){
-				storeChunks(array,md5Hashes,localBoundary);
-				first = !first;
-				totalSize = 0;
-			}
-			else{
-				totalSize = array.length; // get the total size of the file
-				runTwoMax(array,md5Hashes,localBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
-			}
-			// empty out the md5 Hashes for reuse
-			md5Hashes.clear();		
-		} // end of the for ( that reads the files) loop		
+	private static void readBytes(int localBoundary) throws Exception{
+		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+	
 	} // end of the function
 
 	/* -------------------------------------------------------------------------------------------------------
@@ -292,6 +325,7 @@ public class TwoMax{
 					builder.setLength(0); // reset the stringbuilder for the next round
 					match = true; // so we don't increment our window values
 					maxPoint = -1; // reset the maxPoint
+					break;
 				}
 			}
 
@@ -411,6 +445,7 @@ public class TwoMax{
 					match = true; //  so we don't increment our window again
 					numOfPieces++; // increment the number of pieces we got
 					maxPoint = -1;
+					break;
 				}
 			}	
 

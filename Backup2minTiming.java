@@ -187,6 +187,7 @@ public class Backup2minTiming{
 					match = true; // so we don't increment our window values
 					secondSmallest = -1; //reset the second smallest
 					numOfPieces++;
+					break;
 				}
 			} // end of for
 

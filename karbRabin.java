@@ -31,7 +31,7 @@ public class KarbRabin{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
-	private static String directory = "../thesis/gcc/";
+	private static String directory = "../thesis/";
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
@@ -40,7 +40,7 @@ public class KarbRabin{
 	private static int localBoundry; // size of how many elements this hash must be greater than/less than to be considered a boundary
 
 	// get the ratio of the coverage over the total size
-	private static double totalSize;
+	private static double totalSize=0;
 	private static double coverage=0;
 	private static int numOfPieces=0;  // used to calculate block size
 
@@ -52,28 +52,40 @@ public class KarbRabin{
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
+	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
+
 
 
 
 	public static void main(String [] args) throws Exception{
 
-		ReadFile.readFile(directory,fileList);
-		preliminaryStep();
-		driverRun();
-		//runTimesSet();
+		// ReadFile.readFile(directory,fileList);
+		// preliminaryStep(directory);
+		// startCDC();
+		int [] arr = {2,3,4};
+ 		for (int i : arr){
+ 			System.out.println("document_date_selection = " + i);
+ 			document_date_selection = i;
+ 			runArchiveSet();
+ 			fileArray.clear();
+ 			hashed_File_List.clear();
+ 			fileList.clear();
+ 		}
+
+		//getBlockFrequency();
 	}
 
 	/*
 		- This reads the file and hashses the document, which are then stored in our arrayLisrs
 		- we do this before, so we dont have to hash again later ( which is time consuming)
 	*/
-	private static void preliminaryStep() throws Exception{
+	private static void preliminaryStep(String dir) throws Exception{
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
 		// prepoccessing step to hash the document, since we dont need to hash the document again
 		for (int i = 0; i < fileList.size(); ++i){
-			System.out.println("preliminaryStep " + fileList.get(i));
-			Path p = Paths.get(directory+fileList.get(i)); // read this file
+			//System.out.println("preliminaryStep " + fileList.get(i));
+			Path p = Paths.get(dir+fileList.get(i)); // read this file
 			byte [] array = Files.readAllBytes(p); // read the file in bytes
 			//System.out.println(array.length);
 
@@ -86,6 +98,71 @@ public class KarbRabin{
 			hashed_File_List.add(md5Hashes);
 		}
 		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+
+	}
+
+
+	/*
+		- This method is used has a helper method to run the algo for the archive dataset
+		- Note the archive set has multiple directories ( one for each url )
+		- So Read all of the directories in first and for each directory run the code
+	*/
+	private static void runArchiveSet() throws Exception{
+
+		directory = "../thesis/datasets/";
+		File file = new File(directory);
+		String[] directory_list = file.list(new FilenameFilter() {
+		  @Override
+		  public boolean accept(File current, String name) {
+		    return new File(current, name).isDirectory(); // make sure its a directory
+		  }
+		});
+
+		int totalRuns = 0; // used to avg the runs in the end
+		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+			total_iter_count++;
+
+		System.out.println(Arrays.toString(directory_list));
+		long [] block_size_list = new long [total_iter_count];
+		long [] ratio_size_list = new long [total_iter_count];
+	
+		// loop through and run the cdc for each directory
+		for (String dir : directory_list){
+			// We have 4 files in each directory
+			// current, last_week, last_month, last_year
+			// read all the files in the directory
+			//System.out.println(dir);
+			ReadFile.readFile(directory+"/" + dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
+
+			// now loop through and call each pair of files with the current one (index 0)
+			// for (int i = 1; i < fileArray.size(); ++i){
+			// 	totalRuns++;
+			// 	//System.out.println("Running it against " + fileList.get(0) + " " + fileList.get(i));
+			// 	totalSize = fileArray.get(i).length; // get the length of the file we will be running it against!
+			// 	startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(i),hashed_File_List.get(0),hashed_File_List.get(i));
+			// }
+			totalRuns++;
+			totalSize = fileArray.get(document_date_selection).length; // get the length of the file we will be running it against!
+			startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(document_date_selection),hashed_File_List.get(0),hashed_File_List.get(document_date_selection));
+			// clear the fileList and hashed_file_list array
+			fileArray.clear();
+			hashed_File_List.clear();
+			fileList.clear();
+		} // end of directory list for loop
+
+		System.out.println(Arrays.toString(block_size_list));
+		System.out.println(Arrays.toString(ratio_size_list));
+
+		// now output the avged value for all the runs
+		int index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list[index]/(double)totalRuns;
+			double ratio = ratio_size_list[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
 	}
 
 
@@ -97,19 +174,84 @@ public class KarbRabin{
 		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
 		byte [] array = Files.readAllBytes(p); // read the file into a byte array
 		int start = 0; // start of the sliding window
-		window = 12;
 		int end = start + window - 1; // ending boundary
-		Long divisor =  new Long(100);
-		Long remainder = new Long(7);
+		long remainder = 7;
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-		int totalBlocks = chopDocument(array,md5Hashes,blockFreq,divisor,remainder);
-		// now output the block sizes, along with there frequencies and probilities
-		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
-			// output the block freq
-			double prob = (double)tuple.getValue() / (double)totalBlocks;
-			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		
+		long [] divisorArray = {500,1000}; // run the frequency code for these divisor values (AKA expected block Size)
+		for (long divisor: divisorArray ){
+			System.out.println("Running Likelihood for " + divisor);
+			int totalBlocks = chopDocument(array,md5Hashes,blockFreq,divisor,remainder);
+			// now output the block sizes, along with there frequencies and probilities
+			for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+				// output the block freq
+				double prob = (double)tuple.getValue() / (double)totalBlocks;
+				System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		
+			}
+			md5Hashes.clear();
+			blockFreq.clear();
 		}
 	}
+
+
+
+	/*
+		- This is basically sets up everything and calls the actual contentDependant methods
+	*/
+	private static void startCDC() throws Exception{
+		long remainder = 7; // this is the remainder that we will be comparing with
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+		{			
+			long divisor = i;
+			System.out.print( i+" ");
+			runBytes(divisor,remainder); // run the karb rabin algorithm
+			// this is the block size per boundary
+			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+			double blockSize = (double)totalSize/(double)numOfPieces;
+			double ratio = (double)coverage/(double)totalSize;
+			System.out.println( blockSize+ " "+ratio);
+			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
+			matches.clear();
+			coverage = 0;
+			numOfPieces = 0; 		
+		}
+		//in.close();		
+	}
+
+	/*
+		- Overloaded method just for the internet archive dataset
+		- The first two params hold the block size and ratioSize respectively (for all the runnings)
+		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+	*/
+	private static void startCDC(long [] block_size_list, long [] ratio_size_list,byte[] array1,byte[] array2,
+	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+		long remainder = 7; // this is the remainder that we will be comparing with
+		int index = 0; // used to traverse the two lists
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+		{			
+			long divisor = i;
+			// System.out.print( i+" ");
+			storeChunks(array1,md5Hashes1,divisor,remainder); // cut up the first file and store it
+			runKarbRabin(array2,md5Hashes2,divisor,remainder); // call the method again, but on the second file only
+			// this is the block size per boundary
+			double blockSize = (double)totalSize/(double)numOfPieces;
+			double ratio = (double)coverage/(double)totalSize;
+
+			// System.out.println(Arrays.toString(block_size_list));
+
+			// extra step, add the data back into the list
+			block_size_list[index] += blockSize;
+			ratio_size_list[index] += ratio;
+			++index;
+			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
+			matches.clear();
+			coverage = 0;
+			numOfPieces = 0; 		
+		}
+	}
+
+
 	/*-----------------------------------------------------------------------------------------------
 	This method:
 		--	@param:
@@ -157,54 +299,6 @@ public class KarbRabin{
 
 	} // end of the method
 
-	/*
-		-- This is a helper method to run all the nytimes against the current version
-	*/
-	private static void runTimesSet() throws Exception{
-		ArrayList<String> timesFiles = new ArrayList<String>();
-		ReadFile.readFile(directory,timesFiles); // read the file into the temp array
-		startBoundary = 20;
-		endBoundary = 200;
-		increment = 10;
-		// the most current one is the one as the zeroth index
-		fileList.add(timesFiles.get(0)); // add the current as the first element
-		// start from the zeroth index and go to the end of the file
-		for (int i = 1; i < timesFiles.size(); ++i){
-			fileList.add(timesFiles.get(i)); // add the next document
-			System.out.println("=========" + fileList.get(0) + " " + fileList.get(1) + "\n");
-			driverRun();
-			fileList.remove(1);
-		}
-	}
-
-
-
-	/*
-		- This is basically sets up everything and calls the actual contentDependant methods
-	*/
-	private static void driverRun() throws Exception{
-		long remainder = 7; // this is the remainder that we will be comparing with
-		for (int i = startBoundary;i<=endBoundary;i+=increment)
-		{			
-			/*--------------------------------------------------------------------------------------------
-			-- Run the karb rabin algorithm for the set mod values
-			-- We will use the local boundary for all the way up to the value the user entered
-			-------------------------------------------------------------------------------------------------*/
-			long divisor = i;
-			System.out.print( i+" ");
-			runBytes(divisor,remainder); // run the karb rabin algorithm
-			// this is the block size per boundary
-			double blockSize = (double)totalSize/(double)numOfPieces;
-			double ratio = (double)coverage/(double)totalSize;
-			System.out.println( blockSize+ " "+ratio);
-
-			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
-			coverage = 0;
-			numOfPieces = 0; 		
-		}
-		//in.close();		
-	}
 
 	/*
 		Read in all the files and loop through all the files

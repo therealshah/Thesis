@@ -168,6 +168,7 @@ public class LocalMinimaTiming{
 					end = current + localBoundary; // this is the new end of the hash boundary
 					match = true; // so we don't increment our window values
 					numOfPieces++; // we have added a cutpoint
+					break;
 				}
 			}			
 			
