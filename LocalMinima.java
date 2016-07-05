@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.zip.*;
+import java.lang.*;
 
 /*
 	Author: Shahzaib Javed
@@ -34,7 +35,7 @@ public class LocalMinima{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis/gcc/";
 	//private static String directory = "../thesis/datasets/1389blog.com/";
-	private static String directory = "../thesis/datasets/.pequannock.org/";
+	private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
 
 	//private static String directory = "../thesis/periodic/";
 
@@ -47,15 +48,17 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 20; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
+	private static boolean test = false;
+	
 	public static void main(String [] args) throws IOException, Exception
  	{
 
@@ -64,15 +67,8 @@ public class LocalMinima{
 
  	 // 	preliminaryStep(directory);
  	 // 	startCDC();
- 		int [] arr = {1,2,3};
- 		for (int i : arr){
- 			System.out.println("document_date_selection = " + i);
- 			document_date_selection = i;
- 			runArchiveSet();
- 			fileArray.clear();
- 			hashed_File_List.clear();
- 			fileList.clear();
- 		}
+ 		System.out.println("Running LocalMinima");
+		runArchiveSet();
 
 	}
 
@@ -213,7 +209,7 @@ public class LocalMinima{
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		directory = "../thesis/datasets/";
+		directory = "../thesis-datasets/datasets/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -223,48 +219,98 @@ public class LocalMinima{
 		});
 
 		int totalRuns = 0; // used to avg the runs in the end
-		int sets = 200;
 		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 			total_iter_count++;
 
 		//System.out.println(Arrays.toString(directory_list));
-		long [] block_size_list = new long [total_iter_count];
-		double [] ratio_size_list = new double [total_iter_count];
-	
+		int sets = 0;
+		// make the arrays to hold the respecitve info for the different verions\
+		// run it simulateounsly to speed the from the program!
+		double [] block_size_list_last_month = new double [total_iter_count];
+		double [] ratio_size_list_last_month = new double [total_iter_count];	
+
+		double [] block_size_list_last_week = new double [total_iter_count];
+		double [] ratio_size_list_last_week = new double [total_iter_count];
+
+		double [] block_size_list_last_year = new double [total_iter_count];
+		double [] ratio_size_list_last_year = new double [total_iter_count];	
+
+
+		//0 - Last_month
+		//1- current
+		//2-last_year
+		//3 - last_week	
+		int current = 1;
+		int last_month = 0;
+		int last_week = 3;
+		int last_year = 2;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
 			// We have 4 files in each directory
 			// current, last_week, last_month, last_year
 			// read all the files in the directory
 			//System.out.println(dir);
+
 			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
 			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
-
-			// now loop through and call each pair of files with the current one (index 0)
-			// for (int i = 1; i < fileArray.size(); ++i){
-			// 	totalRuns++;
-			// 	totalSize = fileArray.get(i).length; // get the length of the file we will be running it against!
-			// 	startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(i),hashed_File_List.get(0),hashed_File_List.get(i));
-			// }
+			
 			totalRuns++;
-			totalSize = fileArray.get(document_date_selection).length; // get the length of the file we will be running it against!
-			startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(document_date_selection),hashed_File_List.get(0),hashed_File_List.get(document_date_selection));
+
+			
+			// run it against last week
+			totalSize = fileArray.get(last_week).length; // get the length of the file we will be running it against!
+			startCDC(block_size_list_last_week,ratio_size_list_last_week,fileArray.get(current),fileArray.get(last_week),hashed_File_List.get(current),hashed_File_List.get(last_week));
+			
+			// run it against last month
+			totalSize = fileArray.get(last_month).length; // get the length of the file we will be running it against!
+			startCDC(block_size_list_last_month,ratio_size_list_last_month,fileArray.get(current),fileArray.get(last_month),hashed_File_List.get(current),hashed_File_List.get(last_month));
+
+			// run it against last year
+			totalSize = fileArray.get(last_year).length; // get the length of the file we will be running it against!
+			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
+
 			// // clear the fileList and hashed_file_list array
 			fileArray.clear();
 			hashed_File_List.clear();
 			fileList.clear();
-			if (--sets <= 0)
-				break;
+
+			// if (Double.isNaN(ratio_size_list[0])){
+			// 	System.out.println(sets+" "+Arrays.toString(ratio_size_list));
+			// 	test = true;
+			// 	break;
+			// }
+			if (sets % 200 == 0)
+				System.out.println(sets);
+			++sets;
 		} // end of directory list for loop
 
 
 		// now output the avged value for all the runs
-		System.out.println(Arrays.toString(ratio_size_list));
+		//System.out.println(Arrays.toString(ratio_size_list));
+		System.out.println("Printing last weeks");
 		int index = 0;
 		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			double blockSize = block_size_list[index]/(double)totalRuns;
-			double ratio = ratio_size_list[index]/(double)totalRuns;
+			// avg out the outputs
+			double blockSize = block_size_list_last_week[index]/(double)totalRuns;
+			double ratio = ratio_size_list_last_week[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+		System.out.println("Printing last month");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_last_month[index]/(double)totalRuns;
+			double ratio = ratio_size_list_last_month[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+
+		System.out.println("Printing last year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_last_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_last_year[index]/(double)totalRuns;
 			System.out.println(i + " " + blockSize + " " + ratio);
 			index++;
 		}
@@ -295,7 +341,7 @@ public class LocalMinima{
 		- The first two params hold the block size and ratioSize respectively (for all the runnings)
 		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
 	*/
-	private static void startCDC(long [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
 	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -307,10 +353,16 @@ public class LocalMinima{
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
+			// if (Double.isNaN(ratio)){
+			// 	System.out.println(ratio + " " + coverage + " " + totalSize);
 
+			// }
+			//System.out.println(ratio);
 			// extra step, add the data back into the list
 			block_size_list[index] += blockSize;
 			ratio_size_list[index] += ratio;
+			//System.out.println(Arrays.toString(ratio_size_list));
+
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
