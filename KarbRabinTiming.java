@@ -46,21 +46,22 @@ public class KarbRabinTiming{
 	private static int runs = 100; // number of time to run the code
 
 	// made a different method so i can call the timing for all the CDC algos with a single java helper class method
-	public static void main(String [] args) throws IOException, Exception{
+	public static void main(String [] args) throws Exception{
 
 		System.out.println("========== Running KR + " + directory + " runs " + runs);
-		preliminaryStep(); // this is to set everythinh up for the methods
-		// run the method for runs amount of time and avg the results
-		for (int i = 0; i < runs; ++i){
-			index = 0; // set the index to 0 so we can add the correct values in to correct blocksizes
-			driverRun(); // driver for taking in inputs and running the 2min method
-		}
-		// now output the average
-		index = 0;
-		for (int i = startBoundary; i <= endBoundary; i+=increment){
-			System.out.println(i + " " + blockArray[index] + " " + timeArray[index]/(long)runs);
-			index++;
-		}
+		runArchiveSet();
+		// preliminaryStep(); // this is to set everythinh up for the methods
+		// // run the method for runs amount of time and avg the results
+		// for (int i = 0; i < runs; ++i){
+		// 	index = 0; // set the index to 0 so we can add the correct values in to correct blocksizes
+		// 	driverRun(); // driver for taking in inputs and running the 2min method
+		// }
+		// // now output the average
+		// index = 0;
+		// for (int i = startBoundary; i <= endBoundary; i+=increment){
+		// 	System.out.println(i + " " + blockArray[index] + " " + timeArray[index]/(long)runs);
+		// 	index++;
+		// }
 	}
 
 
@@ -80,10 +81,50 @@ public class KarbRabinTiming{
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 	}
 
+		/*
+		- This method is used has a helper method to run the algo for the archive dataset
+		- Note the archive set has multiple directories ( one for each url )
+		- So Read all of the directories in first and for each directory run the code
+	*/
+	private static void runArchiveSet() throws Exception{
+
+		directory = "../thesis-datasets/datasets/";
+		File file = new File(directory);
+		String[] directory_list = file.list(new FilenameFilter() {
+		  @Override
+		  public boolean accept(File current, String name) {
+		    return new File(current, name).isDirectory(); // make sure its a directory
+		  }
+		});
+
+		int totalRuns = 0;
+		// loop through and run the cdc for each directory
+		for (String dir : directory_list){
+
+			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on first file		
+			totalRuns++;			
+			// run it against last week
+			startCDC();
+			//clear the fileLisand hashed_file_list array
+			hashed_File_List.clear();
+			fileList.clear();
+			index = 0; // set index to 0
+		} // end of directory list for loop
+
+
+		index = 0;
+		for (int i = startBoundary; i <= endBoundary; i+=increment){
+			System.out.println(i + " " + blockArray[index]/totalRuns + " " + timeArray[index]/(long)runs);
+			index++;
+		}
+	}
+
+
 	/*
 		- This is basically sets up everything and calls the actual contentDependant methods
 	*/
-	private static void driverRun() throws IOException, Exception{
+	private static void startCDC() throws Exception{
 		Long remainder = new Long(7); // this is the remainder that we will be comparing with
 		//Long divisor;
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -99,6 +140,7 @@ public class KarbRabinTiming{
 		}
 		//in.close();		
 	}
+
 
 	/*
 		- This method reads the file as a byte stream

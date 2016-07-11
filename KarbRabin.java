@@ -31,7 +31,8 @@ public class KarbRabin{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
-	private static String directory = "../thesis/";
+	//private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis/datasets/";
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
@@ -58,10 +59,11 @@ public class KarbRabin{
 
 	public static void main(String [] args) throws Exception{
 
-		// ReadFile.readFile(directory,fileList);
+		System.out.println("Running KarbRabin " + directory);
+		//ReadFile.readFile(directory,fileList); // read the two files
+		// System.out.println(fileList.get(0) + " " + fileList.get(1));
 		// preliminaryStep(directory);
-		// startCDC();
-		System.out.println("Running KarbRabin");
+	 // 	startCDC();
 		runArchiveSet();
 		//getBlockFrequency();
 	}
@@ -88,7 +90,6 @@ public class KarbRabin{
 			fileArray.add(array);
 			hashed_File_List.add(md5Hashes);
 		}
-		totalSize = fileArray.get(3).length; // note we only care about the size of the second file since that's the file we are measuring
 	}
 
 
@@ -99,7 +100,7 @@ public class KarbRabin{
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		directory = "../thesis-datasets/datasets/";
+		directory = "../thesis/datasets/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -346,6 +347,7 @@ public class KarbRabin{
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
 	private static void runBytes(long divisor,long remainder) throws Exception{
+		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor,remainder); // cut up the first file and store it
 		runKarbRabin(fileArray.get(1),hashed_File_List.get(1),divisor,remainder); // call the method again, but on the second file only
 	} // end of the function

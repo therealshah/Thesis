@@ -43,7 +43,7 @@ public class Tddd{
 	private static ArrayList<String> folderList = new ArrayList<String>();
 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/periodic/";
+	private static String directory = "../thesis/emacs/";
 	private static int window=12;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -64,10 +64,12 @@ public class Tddd{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		// ReadFile.readFile(directory,fileList);
-		// preliminaryStep();
-		// startCDC(); // driver for taking in inputs and running the 2min method
-		runArchiveSet();
+		System.out.println("Running TDDD " + directory);
+		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println(fileList.get(0) + " " + fileList.get(1));
+		preliminaryStep(directory);
+	 	startCDC();
+		//runArchiveSet();
 	}
 
 
@@ -94,7 +96,6 @@ public class Tddd{
 			fileArray.add(array);
 			hashed_File_List.add(md5Hashes);
 		}
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
@@ -322,8 +323,8 @@ public class Tddd{
 			long minBoundary  = i; // we will set the mod value as the minimum boundary
 			long maxBoundary = 4*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
-			long divisor2 = i/2; // the backup divisor is half the original divisor
-			long divisor3 = i/4;
+			long divisor2 = i/2+1; // the backup divisor is half the original divisor
+			long divisor3 = i/4+1;
 			// minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
 			// maxBoundary = new Long(4*i); // we will set this as the maximum boundary
 			// divisor1 = new Long(i); // this will be used to mod the results
@@ -388,6 +389,7 @@ public class Tddd{
 	private static void runBytes(int window, Long divisor1, Long divisor2,Long divisor3, Long remainder,
 		Long minBoundary,Long maxBoundary) throws Exception{
 
+		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 		runTddd(fileArray.get(1),hashed_File_List.get(1),divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 	} // end of the function

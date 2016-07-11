@@ -37,7 +37,7 @@ public class Winnowing{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/periodic/";
+	private static String directory = "../thesis/emacs/";
 	//private static String directory = "../thesis/emacs/";
 
 	private static int window = 12;// window is size 3
@@ -49,14 +49,19 @@ public class Winnowing{
 
 	// variables for the boundary size
 	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
+	private static int endBoundary = 2000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
-	public static void main(String [] args) throws IOException, Exception{
-		runArchiveSet();
+	public static void main(String [] args) throws Exception{
+		System.out.println("Running Winnowing " + directory);
+		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println(fileList.get(0) + " " + fileList.get(1));
+		preliminaryStep(directory);
+	 	startCDC();
+		//runArchiveSet();
 	}
 
 
@@ -175,7 +180,6 @@ public class Winnowing{
 			fileArray.add(array);
 			hashed_File_List.add(md5Hashes);
 		}
-		totalSize = fileArray.get(3).length; // note we only care about the size of the second file since that's the file we are measuring
 	}
 
 
@@ -363,6 +367,7 @@ public class Winnowing{
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
+		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
 		winnowing(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 	} // end of the function
@@ -381,7 +386,6 @@ public class Winnowing{
 			start++;
 		}
 		return min;
-
 	}
 
 
