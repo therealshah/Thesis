@@ -28,8 +28,8 @@ public class WinnowingTiming{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	
-	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../thesis-datasets/emacs/";
 
 	private static int window = 12;// window is size 12
 	private static int numOfPieces=0;

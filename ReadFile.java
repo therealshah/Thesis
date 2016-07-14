@@ -13,6 +13,7 @@ public class ReadFile{
 		//File folder = new File(directory + folderName); //only needed for HTML directories
 		File folder = new File(directory);
 		File [] listOfFiles = folder.listFiles();
+		Arrays.sort(listOfFiles); // sort the files in acending order 
 
 		// clear the fileList for the new files to be added in
 		fileList.clear(); // clear the old list of files
@@ -24,5 +25,8 @@ public class ReadFile{
 				//System.out.println(file.getName());
 			}
 		}
+
+
+
 	}
 }

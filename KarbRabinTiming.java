@@ -27,8 +27,8 @@ public class KarbRabinTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 
-	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../thesis-datasets/emacs/";
 
 	
 	
@@ -49,19 +49,19 @@ public class KarbRabinTiming{
 	public static void main(String [] args) throws Exception{
 
 		System.out.println("========== Running KR + " + directory + " runs " + runs);
-		runArchiveSet();
-		// preliminaryStep(); // this is to set everythinh up for the methods
-		// // run the method for runs amount of time and avg the results
-		// for (int i = 0; i < runs; ++i){
-		// 	index = 0; // set the index to 0 so we can add the correct values in to correct blocksizes
-		// 	driverRun(); // driver for taking in inputs and running the 2min method
-		// }
-		// // now output the average
-		// index = 0;
-		// for (int i = startBoundary; i <= endBoundary; i+=increment){
-		// 	System.out.println(i + " " + blockArray[index] + " " + timeArray[index]/(long)runs);
-		// 	index++;
-		// }
+		//runArchiveSet();
+		preliminaryStep(); // this is to set everythinh up for the methods
+		// run the method for runs amount of time and avg the results
+		for (int i = 0; i < runs; ++i){
+			index = 0; // set the index to 0 so we can add the correct values in to correct blocksizes
+			startCDC(); // driver for taking in inputs and running the 2min method
+		}
+		// now output the average
+		index = 0;
+		for (int i = startBoundary; i <= endBoundary; i+=increment){
+			System.out.println(i + " " + blockArray[index] + " " + timeArray[index]/(long)runs);
+			index++;
+		}
 	}
 
 
@@ -81,10 +81,9 @@ public class KarbRabinTiming{
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 	}
 
-		/*
-		- This method is used has a helper method to run the algo for the archive dataset
-		- Note the archive set has multiple directories ( one for each url )
-		- So Read all of the directories in first and for each directory run the code
+	/*
+		-- This is the portion of the code that runs the timing anaylsis on the archive set
+		-- Only determine to see how long it takes to get the cutpoints for the current version
 	*/
 	private static void runArchiveSet() throws Exception{
 
@@ -100,18 +99,15 @@ public class KarbRabinTiming{
 		int totalRuns = 0;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
-
 			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
-			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on first file		
+			//preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on first file		
 			totalRuns++;			
-			// run it against last week
 			startCDC();
 			//clear the fileLisand hashed_file_list array
-			hashed_File_List.clear();
+			//hashed_File_List.clear();
 			fileList.clear();
 			index = 0; // set index to 0
 		} // end of directory list for loop
-
 
 		index = 0;
 		for (int i = startBoundary; i <= endBoundary; i+=increment){

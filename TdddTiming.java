@@ -26,8 +26,8 @@ public class TdddTiming{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
-	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../thesis-datasets/emacs/";
 
 	private static int window = 12;// window size will be fixed around 12
 	private static int numOfPieces=0;  // used to calculate block size
@@ -50,8 +50,8 @@ public class TdddTiming{
 	// made a different method so i can call the timing for all the CDC algos with a single java helper class method
 	public static void main(String [] args) throws Exception{
 		
-		preliminaryStep();
-		System.out.println("========== Running TDDD " + " " + runs + " " + fileList.get(0));
+		//preliminaryStep();
+		//System.out.println("========== Running TDDD " + " " + runs + " " + fileList.get(0));
 
 		for (int i = 0; i < runs; ++i){
 		//	System.out.println("======================== Run " + i + " " + fileList.get(0));
@@ -61,7 +61,7 @@ public class TdddTiming{
 		// now output the average
 		index = 0;
 		for (int i = startBoundary; i <= endBoundary; i+=increment){
-			System.out.println(i + " " + blockArray[index] + " " + timeArray[index]/(long)runs);
+			System.out.println(i + " " + i/2+1 + " " + i/4+1+ " " + blockArray[index] + " " + timeArray[index]/(long)runs);
 			index++;
 		}
 		
@@ -97,9 +97,9 @@ public class TdddTiming{
 			long minBoundary  = i;// we will set the mod value as the minimum boundary
 			long maxBoundary = 4*i; // we will set this as the maximum boundary
 			long divisor1 = i;// this will be used to mod the results
-			long divisor2 = i/2; // the backup divisor is half the original divisor
-			long divisor3 = i/4;
-			//System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
+			long divisor2 = i/2+1; // the backup divisor is half the original divisor
+			long divisor3 = i/4+1;
+			System.out.println( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
 			readBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);
 			numOfPieces = 0; // reset the num of pieces
 			index++;

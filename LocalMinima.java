@@ -33,14 +33,11 @@ public class LocalMinima{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
-	private static String directory = "../thesis/gcc/";
+	private static String directory = "../thesis-datasets/gcc/";
 	//private static String directory = "../thesis/datasets/1389blog.com/";
 	//private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
 
 	//private static String directory = "../thesis/periodic/";
-
-
-	
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -59,15 +56,15 @@ public class LocalMinima{
 
 	private static boolean test = false;
 	
-	public static void main(String [] args) throws IOException, Exception
+	public static void main(String [] args) throws Exception
  	{
 
-		System.out.println("Running LocalMinima " + directory);
-		ReadFile.readFile(directory,fileList); // read the two files
-		System.out.println(fileList.get(0) + " " + fileList.get(1));
-		preliminaryStep(directory);
-	 	startCDC();
-		//runArchiveSet();
+		// System.out.println("Running LocalMinima " + directory);
+		// ReadFile.readFile(directory,fileList); // read the two files
+		// System.out.println(fileList.get(0) + " " + fileList.get(1));
+		// preliminaryStep(directory);
+	 // 	startCDC();
+		runArchiveSet();
 	}
 
 
@@ -206,6 +203,7 @@ public class LocalMinima{
 	*/
 	private static void runArchiveSet() throws Exception{
 
+		System.out.println("Running LocalMinima archive");
 		directory = "../thesis-datasets/datasets/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
@@ -233,15 +231,11 @@ public class LocalMinima{
 		double [] block_size_list_last_year = new double [total_iter_count];
 		double [] ratio_size_list_last_year = new double [total_iter_count];	
 
-
-		//0 - Last_month
-		//1- current
-		//2-last_year
-		//3 - last_week	
-		int current = 1;
-		int last_month = 0;
-		int last_week = 3;
-		int last_year = 2;
+	
+		int current = 0;
+		int last_week = 2;
+		int last_month = 1;
+		int last_year = 3;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
 			// We have 4 files in each directory
@@ -250,21 +244,23 @@ public class LocalMinima{
 			//System.out.println(dir);
 
 			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			// System.out.println(fileList.get(0) + " " + fileList.get(1));
+			// if (sets == 0)
+			// 	continue;
 			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
 			
 			totalRuns++;
 
 			
+			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
+			
 			// run it against last week
-			totalSize = fileArray.get(last_week).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_week,ratio_size_list_last_week,fileArray.get(current),fileArray.get(last_week),hashed_File_List.get(current),hashed_File_List.get(last_week));
 			
 			// run it against last month
-			totalSize = fileArray.get(last_month).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_month,ratio_size_list_last_month,fileArray.get(current),fileArray.get(last_month),hashed_File_List.get(current),hashed_File_List.get(last_month));
 
 			// run it against last year
-			totalSize = fileArray.get(last_year).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
 
 			// // clear the fileList and hashed_file_list array
@@ -337,16 +333,18 @@ public class LocalMinima{
 		- Overloaded method just for the internet archive dataset
 		- The first two params hold the block size and ratioSize respectively (for all the runnings)
 		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+		- current_ -- are the lists that contain the most recent file version
+		- previous_ -- are the listrs that contain the previous versions
 	*/
-	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
-	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] current_array,byte[] previous_array,
+	 ArrayList<Long> current_md5Hashes,ArrayList<Long> previous_md5Hashes ) throws Exception{
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			int localBoundary = i;
 			// System.out.print( i+" ");
-			storeChunks(array1,md5Hashes1,localBoundary); // cut up the first file and store it
-			run2min(array2,md5Hashes2,localBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -473,8 +471,6 @@ public class LocalMinima{
 		matches.put(hash,1); // simply insert the chunks in the document
 	} // end of the method
 
-
-
 	/* -------------------------------------------------------------------------------------------------------
 	This method:
 		--	Takes in three paramters:
@@ -570,8 +566,6 @@ public class LocalMinima{
 	} // end of the method
 
 
-
-
 	//======================================================================================================== TEST CODE
 
 	/*
@@ -590,8 +584,6 @@ public class LocalMinima{
 
 	/* -------------------------------------------------------------------------------------------------------
 		 This method is same as the one above, but is modified in the way it determines cutpoints
-
-
 		 [start - current-1 ] - left interval
 		 [current + 1 - end] - right interval
 	-------------------------------------------------------------------------------------------------------- */
@@ -613,16 +605,22 @@ public class LocalMinima{
 		{ 
 								
 			// ck of l_min and r_min are valid ( as in are within the boundary range)
-			if (!(l_min >= start && l_min < current))
+			if (!(l_min >= start))
 				l_min = findMin(start,current-1,md5Hashes); // find new min
-			if (!(r_min > current && r_min <= end))
+			if (!(r_min > current))
 				r_min = findMin(current+1,end,md5Hashes);
+
+			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0))
+				l_min = current-1; // this is the new l_min
+			// compare r_min to the new value that was just slided in , as in the end value
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0))
+				r_min = end; // this is the new l_min
 
 			/*-----------------------------------------------------------------------------
 				 if current is the minimum, we have a boundary
 			--------------------------------------------------------------------------------*/
-			if (md5Hashes.get(current).compareTo(md5Hashes.get(Math.min(r_min,l_min))) < 0)
-			{
+			if (md5Hashes.get(current).compareTo(md5Hashes.get(Math.min(r_min,l_min))) < 0){
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}
@@ -660,8 +658,6 @@ public class LocalMinima{
 	} // end of the method
 
 
-
-
 	private static void run2(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
 		int start = 0; // starting point
 		int current = localBoundary;// has to be atlead here to be the local minima
@@ -678,13 +674,18 @@ public class LocalMinima{
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-								
 			// ck of l_min and r_min are valid ( as in are within the boundary range)
-			if (!(l_min >= start && l_min < current))
+			if (!(l_min >= start))
 				l_min = findMin(start,current-1,md5Hashes); // find new min
-			if (!(r_min > current && r_min <= end))
+			if (!(r_min > current))
 				r_min = findMin(current+1,end,md5Hashes);
 
+			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0))
+				l_min = current-1; // this is the new l_min
+			// compare r_min to the new value that was just slided in , as in the end value
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0))
+				r_min = end; // this is the new l_min
 			/*-----------------------------------------------------------------------------
 				 if current is the minimum, we have a boundary
 			--------------------------------------------------------------------------------*/
@@ -732,15 +733,3 @@ public class LocalMinima{
 	} // end of the method
 
 }
-
-
-
-
-
-
-
-
-
-
-
-

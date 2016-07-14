@@ -56,12 +56,12 @@ public class Winnowing{
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
 	public static void main(String [] args) throws Exception{
-		System.out.println("Running Winnowing " + directory);
-		ReadFile.readFile(directory,fileList); // read the two files
-		System.out.println(fileList.get(0) + " " + fileList.get(1));
-		preliminaryStep(directory);
-	 	startCDC();
-		//runArchiveSet();
+		//System.out.println("Running Winnowing " + directory);
+		// ReadFile.readFile(directory,fileList); // read the two files
+		// System.out.println(fileList.get(0) + " " + fileList.get(1));
+		// preliminaryStep(directory);
+	 // 	startCDC();
+		runArchiveSet();
 	}
 
 
@@ -190,6 +190,7 @@ public class Winnowing{
 	*/
 	private static void runArchiveSet() throws Exception{
 
+		System.out.println("Running Winnowing archive");
 		directory = "../thesis-datasets/datasets/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
@@ -218,14 +219,11 @@ public class Winnowing{
 		double [] ratio_size_list_last_year = new double [total_iter_count];	
 
 
-		//0 - Last_month
-		//1- current
-		//2-last_year
-		//3 - last_week	
-		int current = 1;
-		int last_month = 0;
-		int last_week = 3;
-		int last_year = 2;
+
+		int current = 0;
+		int last_week = 2;
+		int last_month = 1;
+		int last_year = 3;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
 			// We have 4 files in each directory
@@ -238,17 +236,16 @@ public class Winnowing{
 			
 			totalRuns++;
 
+						
+			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
 			
 			// run it against last week
-			totalSize = fileArray.get(last_week).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_week,ratio_size_list_last_week,fileArray.get(current),fileArray.get(last_week),hashed_File_List.get(current),hashed_File_List.get(last_week));
 			
 			// run it against last month
-			totalSize = fileArray.get(last_month).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_month,ratio_size_list_last_month,fileArray.get(current),fileArray.get(last_month),hashed_File_List.get(current),hashed_File_List.get(last_month));
 
 			// run it against last year
-			totalSize = fileArray.get(last_year).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
 
 			// // clear the fileList and hashed_file_list array
@@ -328,16 +325,18 @@ public class Winnowing{
 		- Overloaded method just for the internet archive dataset
 		- The first two params hold the block size and ratioSize respectively (for all the runnings)
 		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+		- current_ -- are the lists that contain the most recent file version
+		- previous_ -- are the listrs that contain the previous versions
 	*/
-	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
-	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] current_array,byte[] previous_array,
+	 ArrayList<Long> current_md5Hashes,ArrayList<Long> previous_md5Hashes ) throws Exception{
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			int localBoundary = i;
 			// System.out.print( i+" ");
-			storeChunks(array1,md5Hashes1,localBoundary); // cut up the first file and store it
-			winnowing(array2,md5Hashes2,localBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			winnowing(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;

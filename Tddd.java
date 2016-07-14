@@ -64,12 +64,12 @@ public class Tddd{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		System.out.println("Running TDDD " + directory);
-		ReadFile.readFile(directory,fileList); // read the two files
-		System.out.println(fileList.get(0) + " " + fileList.get(1));
-		preliminaryStep(directory);
-	 	startCDC();
-		//runArchiveSet();
+		// System.out.println("Running TDDD " + directory);
+		// ReadFile.readFile(directory,fileList); // read the two files
+		// System.out.println(fileList.get(0) + " " + fileList.get(1));
+		// preliminaryStep(directory);
+	 // 	startCDC();
+		runArchiveSet();
 	}
 
 
@@ -207,6 +207,7 @@ public class Tddd{
 	*/
 	private static void runArchiveSet() throws Exception{
 
+		System.out.println("Running TDDD archive");
 		directory = "../thesis-datasets/datasets/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
@@ -232,17 +233,12 @@ public class Tddd{
 		double [] ratio_size_list_last_week = new double [total_iter_count];
 
 		double [] block_size_list_last_year = new double [total_iter_count];
-		double [] ratio_size_list_last_year = new double [total_iter_count];	
+		double [] ratio_size_list_last_year = new double [total_iter_count];
 
-
-		//0 - Last_month
-		//1- current
-		//2-last_year
-		//3 - last_week	
-		int current = 1;
-		int last_month = 0;
-		int last_week = 3;
-		int last_year = 2;
+		int current = 0;
+		int last_week = 2;
+		int last_month = 1;
+		int last_year = 3;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
 			// We have 4 files in each directory
@@ -254,18 +250,15 @@ public class Tddd{
 			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
 			
 			totalRuns++;
-
+			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
 			
 			// run it against last week
-			totalSize = fileArray.get(last_week).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_week,ratio_size_list_last_week,fileArray.get(current),fileArray.get(last_week),hashed_File_List.get(current),hashed_File_List.get(last_week));
 			
 			// run it against last month
-			totalSize = fileArray.get(last_month).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_month,ratio_size_list_last_month,fileArray.get(current),fileArray.get(last_month),hashed_File_List.get(current),hashed_File_List.get(last_month));
 
 			// run it against last year
-			totalSize = fileArray.get(last_year).length; // get the length of the file we will be running it against!
 			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
 
 			// // clear the fileList and hashed_file_list array
@@ -323,8 +316,8 @@ public class Tddd{
 			long minBoundary  = i; // we will set the mod value as the minimum boundary
 			long maxBoundary = 4*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
-			long divisor2 = i/2+1; // the backup divisor is half the original divisor
-			long divisor3 = i/4+1;
+			long divisor2 = i/2; // the backup divisor is half the original divisor
+			long divisor3 = i/4;
 			// minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
 			// maxBoundary = new Long(4*i); // we will set this as the maximum boundary
 			// divisor1 = new Long(i); // this will be used to mod the results
@@ -348,9 +341,11 @@ public class Tddd{
 		- Overloaded method just for the internet archive dataset
 		- The first two params hold the block size and ratioSize respectively (for all the runnings)
 		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+		- current_ -- are the lists that contain the most recent file version
+		- previous_ -- are the listrs that contain the previous versions
 	*/
-	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
-	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] current_array,byte[] previous_array,
+	 ArrayList<Long> current_md5Hashes,ArrayList<Long> previous_md5Hashes ) throws Exception{
 		long remainder = 7; // this is the remainder that we will be comparing with
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -358,11 +353,11 @@ public class Tddd{
 			long minBoundary  = i; // we will set the mod value as the minimum boundary
 			long maxBoundary = 4*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
-			long divisor2 = i/2; // the backup divisor is half the original divisor
-			long divisor3 = i/4;
+			long divisor2 = i/2+1; // the backup divisor is half the original divisor
+			long divisor3 = i/4+1;
 			// System.out.print( i+" ");
-			storeChunks(array1,md5Hashes1,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // cut up the first file and store it
-			runTddd(array2,md5Hashes2,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // cut up the first file and store it
+			runTddd(current_array,current_md5Hashes,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
