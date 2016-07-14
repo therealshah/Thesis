@@ -33,7 +33,9 @@ public class LocalMinima{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
-	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../thesis-datasets/gcc/";
+	private static String directory = "../thesis-datasets/periodic/";
+
 	//private static String directory = "../thesis/datasets/1389blog.com/";
 	//private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
 
@@ -59,12 +61,12 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		// System.out.println("Running LocalMinima " + directory);
-		// ReadFile.readFile(directory,fileList); // read the two files
-		// System.out.println(fileList.get(0) + " " + fileList.get(1));
-		// preliminaryStep(directory);
-	 // 	startCDC();
-		runArchiveSet();
+		System.out.println("Running LocalMinima " + directory);
+		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println(fileList.get(0) + " " + fileList.get(1));
+		preliminaryStep(directory);
+	 	startCDC();
+		//runArchiveSet();
 	}
 
 

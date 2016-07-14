@@ -43,7 +43,7 @@ public class Tddd{
 	private static ArrayList<String> folderList = new ArrayList<String>();
 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis-datasets/gcc/";
 	private static int window=12;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -64,13 +64,15 @@ public class Tddd{
 
 
 	public static void main(String [] args) throws IOException, Exception{
-		// System.out.println("Running TDDD " + directory);
-		// ReadFile.readFile(directory,fileList); // read the two files
-		// System.out.println(fileList.get(0) + " " + fileList.get(1));
-		// preliminaryStep(directory);
-	 // 	startCDC();
-		runArchiveSet();
+		System.out.println("Running TDDD " + directory);
+		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println(fileList.get(0) + " " + fileList.get(1));
+		preliminaryStep(directory);
+	 	startCDC();
+		//runArchiveSet();
 	}
+
+
 
 
 
@@ -316,8 +318,8 @@ public class Tddd{
 			long minBoundary  = i; // we will set the mod value as the minimum boundary
 			long maxBoundary = 4*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
-			long divisor2 = i/2; // the backup divisor is half the original divisor
-			long divisor3 = i/4;
+			long divisor2 = i/2+1; // the backup divisor is half the original divisor
+			long divisor3 = i/4+1;
 			// minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
 			// maxBoundary = new Long(4*i); // we will set this as the maximum boundary
 			// divisor1 = new Long(i); // this will be used to mod the results

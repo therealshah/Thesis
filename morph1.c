@@ -25,18 +25,13 @@
 /*                                        */
 /* Command line arguments:                */
 /*                                        */
-/* #1 skips for random number generator   */
-/*    (any number between 0 and 1000)     */ 
 /*                                        */
-/* #2 probability p of staying in state 0 */
 /*                                        */
-/* #3 probability q of staying in state 1 */
+/* #1 name of first input file            */
 /*                                        */
-/* #4 name of first input file            */
+/* #2 name of second input file           */
 /*                                        */
-/* #5 name of second input file           */
-/*                                        */
-/* #6 name of output file to be created   */
+/* #3 name of output file to be created   */
 /*                                        */
 /******************************************/
 
@@ -61,7 +56,7 @@ int main (int argc, char *argv[])
   seed = 123;
 
 
- // if (argc != 7)  error("Incorrect number of command line parameters!\n");
+  if (argc != 4)  error("Incorrect number of command line parameters!\n");
 
  //  skip = atoi(argv[1]);
  //  //printf("Prob = %s " , argv[2]);
@@ -78,8 +73,11 @@ int main (int argc, char *argv[])
   inFile1 = argv[1];
   inFile2 = argv[2];
   outFile = argv[3];
+    
+
   scanf("%d %lf %lf",&skip,&p,&q);
-  printf("The probability = %f\n",p);
+  printf("The probability of staying in file 1 = %f\n",p);
+  printf("The probability of staying in file 2 = %f\n",q);
 
   /* try to open input files */
   if (((if1 = fopen(inFile1, "r")) == NULL) || 
