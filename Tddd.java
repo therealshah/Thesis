@@ -43,7 +43,9 @@ public class Tddd{
 	private static ArrayList<String> folderList = new ArrayList<String>();
 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../thesis-datasets/gcc/";
+	private static String directory = "../thesis-datasets/periodic_10/";
+
 	private static int window=12;// window size will be fixed around 12
 
 	// get the ratio of the coverage over the total size
@@ -52,9 +54,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file

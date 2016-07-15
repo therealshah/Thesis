@@ -28,13 +28,14 @@ import java.lang.*;
 */
 
 public class LocalMinima{
+			
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../thesis-datasets/periodic/";
+	private static String directory = "../thesis-datasets/periodic_10/";
 
 	//private static String directory = "../thesis/datasets/1389blog.com/";
 	//private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
@@ -47,9 +48,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -379,11 +380,11 @@ public class LocalMinima{
 	private static void readBytes(int localBoundary) throws Exception{
 		// there are only 2 files
 		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
-		// storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		// run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 
-		determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		run2(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+		// determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		// run2(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 	} // end of the function
 
 
