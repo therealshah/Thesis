@@ -35,7 +35,7 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../thesis-datasets/periodic_10/";
+	private static String directory = "../thesis-datasets/periodic_50/";
 
 	//private static String directory = "../thesis/datasets/1389blog.com/";
 	//private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
@@ -48,9 +48,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -62,12 +62,43 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
+		runPeriodic();
+		//runArchiveSet();
+	}
+
+	/*
+		-- This is a helper method to run the periodic dataset basically
+
+	*/
+	private static void runPeriodic() throws Exception {
+		System.out.println("Running LocalMinima Periodic");
+		// this is alll the directories we will be running 
+		String [] periodic_directory = {"../thesis-datasets/periodic_100/","../thesis-datasets/periodic_300/","../thesis-datasets/periodic_500/","../thesis-datasets/periodic_700/","../thesis-datasets/periodic_1000/"};
+		
+		// run the dataset
+		for (String dir : periodic_directory){
+			directory = dir;
+			ReadFile.readFile(directory,fileList); // read the two files
+			System.out.println(fileList.get(0) + " " + fileList.get(1));
+			preliminaryStep(directory);
+		 	startCDC();
+		 	fileList.clear(); // clear the list
+		 	fileArray.clear(); // clear the array of files we have read in
+		 	hashed_File_List.clear(); // clear all the hashed files we have
+		}
+		
+	}
+
+	/*
+		-- This is a helper method run datasets such as emacs, gcc etc
+	
+	*/
+	private static void runOtherDataSets() throws Exception{
 		System.out.println("Running LocalMinima " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
 	 	startCDC();
-		//runArchiveSet();
 	}
 
 
