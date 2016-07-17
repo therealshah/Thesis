@@ -79,7 +79,7 @@ public class Tddd{
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running LocalMinima Periodic");
 		// this is alll the directories we will be running 
-		String [] periodic_directory = {"../thesis-datasets/periodic_1000/"};
+		String [] periodic_directory = {"../thesis/periodic/periodic_1000/","../thesis/periodic/periodic_500/"};
 		
 		// run the dataset
 		for (String dir : periodic_directory){
