@@ -34,7 +34,7 @@ public class Test{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
-	private static String directory = "../thesis/emacs/";
+	private static String directory = "../thesis/gcc/";
 	//private static String directory = "../thesis-datasets/periodic_50/";
 
 	//private static String directory = "../thesis/datasets/1389blog.com/";
@@ -165,14 +165,44 @@ public class Test{
 			-- make a chunk start if that point is divisble by a certain point
 		*/
 		int prev = index;
-		while (index < md5Hashes.size()){
-			if (md5Hashes.get(index)%3 == 0)
-				return index; // set this as a boundary if its divisible by a number
-			++index;// go to next one
+		int localBoundary = 2;
+		int start = index;
+		int current = index + localBoundary;
+		int end = current + localBoundary;
+		boolean matche = false;
+		// run 2min using a super small boundary to determine the start of the chunk
+		// more likely to reduce the slack from the left ( AKA both documents will most likely start from this same position)
+		while (end < md5Hashes.size()){
+
+				//System.out.println("Checking " + end + " " + md5Hashes.size());
+			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
+			{							
+				if (i == current){ // we are looking for strictly less than, so we don't want to compare with ourselve
+					i++;
+				}		
+				// CompareTo returns
+					// >0 if greater
+					// <0 if less than
+					// 0 if equal
+				// 	// break if this isnt the smallest one
+				//System.out.println(current + " " + i + " " + md5Hashes.size());
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+					break; // we will break if the value at the current index is not a local minima
+				/*-----------------------------------------------------------------------------
+					We have reached the end. Meaning all the values within the range 
+					(documentStart,Current) is a boundary
+				--------------------------------------------------------------------------------*/
+				if (i == end)
+					return current; // this will be the starting point
+			}						
+			// go to the next window only if we didnt find a match
+			// because if we did find a boundary, we would automatically go to the next window
+			start++;
+			current++;
+			end++;
+			
 		}
-
 		return prev; // otherwise return original 
-
 	}
 
 	/*
