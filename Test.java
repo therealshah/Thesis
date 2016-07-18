@@ -165,7 +165,7 @@ public class Test{
 			-- make a chunk start if that point is divisble by a certain point
 		*/
 		int prev = index;
-		int localBoundary = 2;
+		int localBoundary = 5;
 		int start = index;
 		int current = index + localBoundary;
 		int end = current + localBoundary;
@@ -174,7 +174,7 @@ public class Test{
 		// more likely to reduce the slack from the left ( AKA both documents will most likely start from this same position)
 		while (end < md5Hashes.size()){
 
-				//System.out.println("Checking " + end + " " + md5Hashes.size());
+		// 		//System.out.println("Checking " + end + " " + md5Hashes.size());
 			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
 			{							
 				if (i == current){ // we are looking for strictly less than, so we don't want to compare with ourselve
