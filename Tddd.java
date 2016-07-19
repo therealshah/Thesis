@@ -57,6 +57,8 @@ public class Tddd{
 	private static int startBoundary = 100; // start running the algo using this as the starting param
 	private static int endBoundary = 1000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
+	private static int min_multiplier;
+	private static int max_multiplier; // two multipliers for min and max boundaries
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -68,8 +70,21 @@ public class Tddd{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
-		//runArchiveSet();
+		//runPeriodic();
+ 		int [] min_arr = {1,2,3,4};
+ 		int [] max_arr = {2,3,4,5,6,7,8};
+ 		// run it for different min/max values
+ 		for (int i : min_arr){
+ 			for (int j:max_arr){
+ 				if (i < j){
+ 					System.out.println("Min = " + i + " Max = " + j);
+ 					min_multiplier=i;
+ 					max_multiplier = j;
+ 					runArchiveSet();
+ 				}
+ 			}
+ 		}
+	
 	}
 
 	/*
@@ -79,7 +94,7 @@ public class Tddd{
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running LocalMinima Periodic");
 		// this is alll the directories we will be running 
-		String [] periodic_directory = {"../thesis/periodic/periodic_1000/","../thesis/periodic/periodic_500/"};
+		String [] periodic_directory = {"../thesis-datasets/periodic_1000/"};
 		
 		// run the dataset
 		for (String dir : periodic_directory){
@@ -350,8 +365,8 @@ public class Tddd{
 		long remainder = 7;
 		for (int i = startBoundary;i<=endBoundary; i+=increment)
 		{
-			long minBoundary  = i; // we will set the mod value as the minimum boundary
-			long maxBoundary = 4*i; // we will set this as the maximum boundary
+			long minBoundary  = min_multiplier*i; // we will set the mod value as the minimum boundary
+			long maxBoundary = max_multiplier*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
 			long divisor2 = i/2+1; // the backup divisor is half the original divisor
 			long divisor3 = i/4+1;
@@ -387,8 +402,8 @@ public class Tddd{
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
-			long minBoundary  = i; // we will set the mod value as the minimum boundary
-			long maxBoundary = 4*i; // we will set this as the maximum boundary
+			long minBoundary  = min_multiplier* i; // we will set the mod value as the minimum boundary
+			long maxBoundary = max_multiplier*i; // we will set this as the maximum boundary
 			long divisor1 = i; // this will be used to mod the results
 			long divisor2 = i/2+1; // the backup divisor is half the original divisor
 			long divisor3 = i/4+1;
