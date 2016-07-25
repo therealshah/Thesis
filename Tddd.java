@@ -71,8 +71,8 @@ public class Tddd{
  	{
 
 		//runPeriodic();
- 		int [] min_arr = {1,2,3,4};
- 		int [] max_arr = {2,3,4,5,6,7,8};
+ 		int [] min_arr = {1,2};
+ 		int [] max_arr = {6,7,8};
  		// run it for different min/max values
  		for (int i : min_arr){
  			for (int j:max_arr){
@@ -252,6 +252,7 @@ public class Tddd{
 
 
 
+
 	/*
 		- This method is used has a helper method to run the algo for the archive dataset
 		- Note the archive set has multiple directories ( one for each url )
@@ -259,8 +260,8 @@ public class Tddd{
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		System.out.println("Running TDDD archive");
-		directory = "../thesis-datasets/datasets/";
+		System.out.println("Running KarbRabin archive");
+		directory = "../thesis-datasets/datasets2/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -278,40 +279,38 @@ public class Tddd{
 		int sets = 0;
 		// make the arrays to hold the respecitve info for the different verions\
 		// run it simulateounsly to speed the from the program!
-		double [] block_size_list_last_month = new double [total_iter_count];
-		double [] ratio_size_list_last_month = new double [total_iter_count];	
-
-		double [] block_size_list_last_week = new double [total_iter_count];
-		double [] ratio_size_list_last_week = new double [total_iter_count];
-
 		double [] block_size_list_last_year = new double [total_iter_count];
-		double [] ratio_size_list_last_year = new double [total_iter_count];
+		double [] ratio_size_list_last_year = new double [total_iter_count];	
+
+		double [] block_size_list_six_month = new double [total_iter_count];
+		double [] ratio_size_list__six_month = new double [total_iter_count];
+
+		double [] block_size_list_two_year = new double [total_iter_count];
+		double [] ratio_size_list_two_year = new double [total_iter_count];	
 
 		int current = 0;
-		int last_week = 2;
-		int last_month = 1;
-		int last_year = 3;
+		int six_month = 2;
+		int last_year = 1;
+		int two_year = 3;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
-			// We have 4 files in each directory
-			// current, last_week, last_month, last_year
-			// read all the files in the directory
-			//System.out.println(dir);
 
 			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
 			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
 			
 			totalRuns++;
+
+			
 			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
 			
-			// run it against last week
-			startCDC(block_size_list_last_week,ratio_size_list_last_week,fileArray.get(current),fileArray.get(last_week),hashed_File_List.get(current),hashed_File_List.get(last_week));
+			// run it against six month
+			startCDC(block_size_list_six_month,ratio_size_list__six_month,fileArray.get(current),fileArray.get(six_month),hashed_File_List.get(current),hashed_File_List.get(six_month));
 			
-			// run it against last month
-			startCDC(block_size_list_last_month,ratio_size_list_last_month,fileArray.get(current),fileArray.get(last_month),hashed_File_List.get(current),hashed_File_List.get(last_month));
-
 			// run it against last year
 			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
+
+			// run it against 2
+			startCDC(block_size_list_two_year,ratio_size_list_two_year,fileArray.get(current),fileArray.get(two_year),hashed_File_List.get(current),hashed_File_List.get(two_year));
 
 			// // clear the fileList and hashed_file_list array
 			fileArray.clear();
@@ -331,29 +330,29 @@ public class Tddd{
 
 		// now output the avged value for all the runs
 		//System.out.println(Arrays.toString(ratio_size_list));
-		System.out.println("Printing last weeks");
+		System.out.println("Printing six_month");
 		int index = 0;
 		for (int i = startBoundary;i<=endBoundary;i+=increment){
 			// avg out the outputs
-			double blockSize = block_size_list_last_week[index]/(double)totalRuns;
-			double ratio = ratio_size_list_last_week[index]/(double)totalRuns;
+			double blockSize = block_size_list_six_month[index]/(double)totalRuns;
+			double ratio = ratio_size_list__six_month[index]/(double)totalRuns;
 			System.out.println(i + " " + blockSize + " " + ratio);
 			index++;
 		}
-		System.out.println("Printing last month");
-		index = 0;
-		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			double blockSize = block_size_list_last_month[index]/(double)totalRuns;
-			double ratio = ratio_size_list_last_month[index]/(double)totalRuns;
-			System.out.println(i + " " + blockSize + " " + ratio);
-			index++;
-		}
-
 		System.out.println("Printing last year");
 		index = 0;
 		for (int i = startBoundary;i<=endBoundary;i+=increment){
 			double blockSize = block_size_list_last_year[index]/(double)totalRuns;
 			double ratio = ratio_size_list_last_year[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+
+		System.out.println("Printing two year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_two_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_two_year[index]/(double)totalRuns;
 			System.out.println(i + " " + blockSize + " " + ratio);
 			index++;
 		}
