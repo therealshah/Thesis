@@ -21,7 +21,7 @@ import java.util.zip.*;
 	occurred.
 
 
-	Custom2min: This algorithm is similiar to the LocalMinima method, but has minor tweaks. Similar to the localMinima algorithm, this one 
+	Backup2min: This algorithm is similiar to the LocalMinima method, but has minor tweaks. Similar to the localMinima algorithm, this one 
 	also has a BoundarySize associated with it called B. Similar to the LocalMinima, this algorithm declares a hash a cutpoint only if the hash
 	is strictly less than the B hases before it and B hashes after it. However, if this current hash isn't the minima, then we check too see
 	if the hash is the second smallest. If so, we will store it. Note only the rightmost secondSmallest is stored which is reset if a boundary
@@ -55,15 +55,46 @@ public class Backup2min{
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
 
-	public static void main(String [] args) throws IOException, Exception
- 	{
- 		String [] dir = {"morph.998001/","morph.99805/","morph.999001/"};
- 		for (String s: dir){
- 			directory = s;
- 			System.out.println(directory);
- 			ReadFile.readFile(directory,fileList);
- 			driverRun();
- 		}
+	public static void main(String [] args) throws Exception{
+
+		int [] arr = {2,4,6}; // these are the multipliers we will use
+ 		for (int m : arr){
+ 			multiplier = m;
+			System.out.println("multiplier = " + multiplier);
+			runArchiveSet(); 
+			
+		}
+	}
+
+	/*
+		-- This is a helper method to run the periodic dataset basically
+	*/
+	private static void runPeriodic() throws Exception {
+		System.out.println("Running LocalMinima Periodic");
+		// this is alll the directories we will be running 
+		String [] periodic_directory = {"../thesis-datasets/periodic_100/","../thesis-datasets/periodic_300/","../thesis-datasets/periodic_500/","../thesis-datasets/periodic_700/","../thesis-datasets/periodic_1000/"};
+		// run the dataset
+		for (String dir : periodic_directory){
+			directory = dir;
+			ReadFile.readFile(directory,fileList); // read the two files
+			System.out.println(fileList.get(0) + " " + fileList.get(1));
+			preliminaryStep(directory);
+		 	startCDC();
+		 	fileList.clear(); // clear the list
+		 	fileArray.clear(); // clear the array of files we have read in
+		 	hashed_File_List.clear(); // clear all the hashed files we have		 	
+		}
+	}
+
+	/*
+		-- This is a helper method run datasets such as emacs, gcc etc
+	*/
+	private static void runOtherDataSets() throws Exception{
+		System.out.println("Running LocalMinima " + directory);
+		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println(fileList.get(0) + " " + fileList.get(1));
+		preliminaryStep(directory);
+	 	startCDC();
 	}
 
 	// this method basically will chop up the blocks and get their frequencies
@@ -204,7 +235,8 @@ public class Backup2min{
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		directory = "../thesis/datasets/";
+		System.out.println("Running twomax archive");
+		directory = "../thesis-datasets/datasets2/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -218,38 +250,79 @@ public class Backup2min{
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 			total_iter_count++;
 
-		System.out.println(Arrays.toString(directory_list));
-		double [] block_size_list = new double [total_iter_count];
-		double [] ratio_size_list = new double [total_iter_count];
-	
+		//System.out.println(Arrays.toString(directory_list));
+		int sets = 0;
+		// make the arrays to hold the respecitve info for the different verions\
+		// run it simulateounsly to speed the from the program!
+		double [] block_size_list_last_year = new double [total_iter_count];
+		double [] ratio_size_list_last_year = new double [total_iter_count];	
+
+		double [] block_size_list_six_month = new double [total_iter_count];
+		double [] ratio_size_list__six_month = new double [total_iter_count];
+
+		double [] block_size_list_two_year = new double [total_iter_count];
+		double [] ratio_size_list_two_year = new double [total_iter_count];	
+
+		int current = 0;
+		int six_month = 2;
+		int last_year = 1;
+		int two_year = 3;
 		// loop through and run the cdc for each directory
 		for (String dir : directory_list){
-			// We have 4 files in each directory
-			// current, last_week, last_month, last_year
-			// read all the files in the directory
-			System.out.println(dir);
-			ReadFile.readFile(directory+"/" + dir,fileList); // read all the files in this directory
-			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
 
-			// now loop through and call each pair of files with the current one (index 0)
-			for (int i = 1; i < fileArray.size(); ++i){
-				totalRuns++;
-				//System.out.println("Running it against " + fileList.get(0) + " " + fileList.get(i));
-				totalSize = fileArray.get(i).length; // get the length of the file we will be running it against!
-				startCDC(block_size_list,ratio_size_list,fileArray.get(0),fileArray.get(i),hashed_File_List.get(0),hashed_File_List.get(i));
-			}
-			// clear the fileList and hashed_file_list array
+			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
+			
+			totalRuns++;
+
+			
+			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
+			
+			// run it against six month
+			startCDC(block_size_list_six_month,ratio_size_list__six_month,fileArray.get(current),fileArray.get(six_month),hashed_File_List.get(current),hashed_File_List.get(six_month));
+			
+			// run it against last year
+			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
+
+			// run it against 2
+			startCDC(block_size_list_two_year,ratio_size_list_two_year,fileArray.get(current),fileArray.get(two_year),hashed_File_List.get(current),hashed_File_List.get(two_year));
+
+			// // clear the fileList and hashed_file_list array
 			fileArray.clear();
 			hashed_File_List.clear();
 			fileList.clear();
+
+			if (sets % 200 == 0)
+				System.out.println(sets);
+			++sets;
 		} // end of directory list for loop
 
 
 		// now output the avged value for all the runs
+		//System.out.println(Arrays.toString(ratio_size_list));
+		System.out.println("Printing six_month");
 		int index = 0;
 		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			double blockSize = block_size_list[index]/(double)totalRuns;
-			double ratio = ratio_size_list[index]/(double)totalRuns;
+			// avg out the outputs
+			double blockSize = block_size_list_six_month[index]/(double)totalRuns;
+			double ratio = ratio_size_list__six_month[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+		System.out.println("Printing last year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_last_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_last_year[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+
+		System.out.println("Printing two year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_two_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_two_year[index]/(double)totalRuns;
 			System.out.println(i + " " + blockSize + " " + ratio);
 			index++;
 		}

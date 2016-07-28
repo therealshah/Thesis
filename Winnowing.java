@@ -66,7 +66,6 @@ public class Winnowing{
 
 	/*
 		-- This is a helper method to run the periodic dataset basically
-
 	*/
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running LocalMinima Periodic");
@@ -84,12 +83,10 @@ public class Winnowing{
 		 	fileArray.clear(); // clear the array of files we have read in
 		 	hashed_File_List.clear(); // clear all the hashed files we have		 	
 		}
-		
 	}
 
 	/*
 		-- This is a helper method run datasets such as emacs, gcc etc
-	
 	*/
 	private static void runOtherDataSets() throws Exception{
 		System.out.println("Running LocalMinima " + directory);
@@ -218,109 +215,103 @@ public class Winnowing{
 	}
 
 
-/*
-		- This method is used has a helper method to run the algo for the archive dataset
-		- Note the archive set has multiple directories ( one for each url )
-		- So Read all of the directories in first and for each directory run the code
+	/*
+		-- This is a helper method to run the periodic dataset basically
+
 	*/
-	private static void runArchiveSet() throws Exception{
+	private static void runPeriodic() throws Exception {
+		System.out.println("Running KR Periodic");
+		// this is alll the directories we will be running 
+		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
+		// this is the base of the two files
+		// these two are directories, we will concanate with the numbers to get the full dir name
+		String base_old_file = "../thesis-datasets/input_";
+		String base_new_file = "../thesis-datasets/periodic_";	
 
-		System.out.println("Running KarbRabin archive");
-		directory = "../thesis-datasets/datasets2/";
-		File file = new File(directory);
-		String[] directory_list = file.list(new FilenameFilter() {
-		  @Override
-		  public boolean accept(File current, String name) {
-		    return new File(current, name).isDirectory(); // make sure its a directory
-		  }
-		});
-
-		int totalRuns = 0; // used to avg the runs in the end
 		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 			total_iter_count++;
 
-		//System.out.println(Arrays.toString(directory_list));
-		int sets = 0;
-		// make the arrays to hold the respecitve info for the different verions\
-		// run it simulateounsly to speed the from the program!
-		double [] block_size_list_last_year = new double [total_iter_count];
-		double [] ratio_size_list_last_year = new double [total_iter_count];	
+		for (int dir_num : arr){
+			// set up our directories
 
-		double [] block_size_list_six_month = new double [total_iter_count];
-		double [] ratio_size_list__six_month = new double [total_iter_count];
+			String old_file_dir = base_old_file + dir_num + "/";
+			String new_file_dir = base_new_file + dir_num +"/";
+			System.out.println(old_file_dir);
 
-		double [] block_size_list_two_year = new double [total_iter_count];
-		double [] ratio_size_list_two_year = new double [total_iter_count];	
+			// read all the files in these two directories in sorted order
+			ArrayList<String> old_file_list = new ArrayList<String>();
+			ArrayList<String> new_file_list = new ArrayList<String>();
 
-		int current = 0;
-		int six_month = 2;
-		int last_year = 1;
-		int two_year = 3;
-		// loop through and run the cdc for each directory
-		for (String dir : directory_list){
-
-			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
-			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
-			
-			totalRuns++;
-
-			
-			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
-			
-			// run it against six month
-			startCDC(block_size_list_six_month,ratio_size_list__six_month,fileArray.get(current),fileArray.get(six_month),hashed_File_List.get(current),hashed_File_List.get(six_month));
-			
-			// run it against last year
-			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
-
-			// run it against 2
-			startCDC(block_size_list_two_year,ratio_size_list_two_year,fileArray.get(current),fileArray.get(two_year),hashed_File_List.get(current),hashed_File_List.get(two_year));
-
-			// // clear the fileList and hashed_file_list array
-			fileArray.clear();
-			hashed_File_List.clear();
-			fileList.clear();
-
-			// if (Double.isNaN(ratio_size_list[0])){
-			// 	System.out.println(sets+" "+Arrays.toString(ratio_size_list));
-			// 	test = true;
-			// 	break;
-			// }
-			if (sets % 200 == 0)
-				System.out.println(sets);
-			++sets;
-		} // end of directory list for loop
+			ReadFile.readFile(old_file_dir,old_file_list);
+			ReadFile.readFile(new_file_dir,new_file_list);
 
 
-		// now output the avged value for all the runs
-		//System.out.println(Arrays.toString(ratio_size_list));
-		System.out.println("Printing six_month");
-		int index = 0;
-		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			// avg out the outputs
-			double blockSize = block_size_list_six_month[index]/(double)totalRuns;
-			double ratio = ratio_size_list__six_month[index]/(double)totalRuns;
-			System.out.println(i + " " + blockSize + " " + ratio);
-			index++;
-		}
-		System.out.println("Printing last year");
-		index = 0;
-		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			double blockSize = block_size_list_last_year[index]/(double)totalRuns;
-			double ratio = ratio_size_list_last_year[index]/(double)totalRuns;
-			System.out.println(i + " " + blockSize + " " + ratio);
-			index++;
+			// used to store all the runnings for the periodic data
+			double [] block_size_list = new double [total_iter_count];
+			double [] ratio_size_list = new double [total_iter_count];	
+			int totalRuns = 0;
+
+			for (int i = 0; i < old_file_list.size(); ++i){
+				//System.out.println(old_file_list.get(i) + " " + new_file_list.get(i));
+				String [] s1 = old_file_list.get(i).split("_");
+				String [] s2 = new_file_list.get(i).split("_");
+				// input file should corrospond to the output file
+				if (!s1[1].equals(s2[1]) || !s1[2].equals(s2[2]) )
+					System.out.println("We got a huge problem");
+
+				// basically same code as in the prelinaryStep method, but we need to modify it for perdiodic files
+				int start = 0; // start of the sliding window
+				int end = start + window - 1; // ending boundary
+				// we cant call preliminary function, so hash the two files individually 
+				//System.out.println("preliminaryStep " + fileList.get(i));
+				Path p = Paths.get(old_file_dir+old_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
+				Path p2 = Paths.get(new_file_dir+new_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
+
+				byte [] old_file = Files.readAllBytes(p); // read the file in bytes
+				byte [] new_file = Files.readAllBytes(p2);
+				//System.out.println(array.length);
+				ArrayList<Long> old_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
+				ArrayList<Long> new_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
+
+				HashDocument.hashDocument(old_file,old_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+				HashDocument.hashDocument(new_file,new_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+
+				// now call the startCdc method
+				totalSize = new_file.length; // this is the length of the file
+				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
+
+				if (totalRuns % 10 == 0)
+					System.out.println(totalRuns);
+				totalRuns++;
+
+			}
+
+			// now output the results
+			System.out.println("File dir = " + dir_num + " totalRuns = " +totalRuns);
+			int index = 0;
+			for (int i = startBoundary;i<=endBoundary;i+=increment){
+				// avg out the outputs
+				double blockSize = block_size_list[index]/(double)totalRuns;
+				double ratio = ratio_size_list[index]/(double)totalRuns;
+				System.out.println(i + " " + blockSize + " " + ratio);
+				index++;
 		}
 
-		System.out.println("Printing two year");
-		index = 0;
-		for (int i = startBoundary;i<=endBoundary;i+=increment){
-			double blockSize = block_size_list_two_year[index]/(double)totalRuns;
-			double ratio = ratio_size_list_two_year[index]/(double)totalRuns;
-			System.out.println(i + " " + blockSize + " " + ratio);
-			index++;
-		}
+			// now each index matches the corrosponding file
+		}	
+		// // run the dataset
+		// for (String dir : periodic_directory){
+		// 	directory = dir;
+		// 	ReadFile.readFile(directory,fileList); // read the two files
+		// 	System.out.println(fileList.get(0) + " " + fileList.get(1));
+		// 	preliminaryStep(directory);
+		//  	startCDC();
+		//  	fileList.clear(); // clear the list
+		//  	fileArray.clear(); // clear the array of files we have read in
+		//  	hashed_File_List.clear(); // clear all the hashed files we have
+		// }
+		
 	}
 
 

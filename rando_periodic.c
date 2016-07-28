@@ -16,15 +16,16 @@
 /*                                        */
 /* #2 size of random file ( guarenttes atleast this much) */
 /*                                        */
-/* #3 name of output file                 */
 /*      
-/* #4 length of the periodic data         */
+/* #3 length of the periodic data         */
 /******************************************/
 
 /*
 
   This rando code generates periodic files.
   The main two parameters for this is the content that is being repeated and the length the content ( that is repeated)
+
+  Generates 100 files with different c parameters (each time a different seed is generated)
 */
 
 int main (int argc, char *argv[]) 
@@ -32,7 +33,7 @@ int main (int argc, char *argv[])
   int skip;                  /* skip for random number generator */
   double msrandom();
   FILE *of;
-  char *outFile;            /* output file */
+         /* output file */
   int i, j, n;
   int seed;
   double v;
@@ -40,39 +41,52 @@ int main (int argc, char *argv[])
   char c;
   int periodic_length;
 
+  int file_number = 100; // number of files to generate
+  seed = 123; // starting seed, changes all the time
 
-  seed = 123;
+  if (argc != 4)  error("Incorrect number of command line parameters!\n");
 
-  if (argc != 5)  error("Incorrect number of command line parameters!\n");
-
+  // read the values from the user in
   skip = atoi(argv[1]);
-  n = atoi(argv[2]);
-  outFile = argv[3];
-  periodic_length = atoi(argv[4]);
+  n = atoi(argv[2]); // size of file
+ // outFile = argv[3];
+  periodic_length = atoi(argv[3]);
+  int file_counter; // keep track of how many files we have so far
+  // make 100 files
+  for (file_counter = 0; file_counter < file_number; ++file_counter){
 
-  /* try to open output file */
-  if ((of = fopen(outFile, "w")) == NULL)
-    error("Output file could not be opened!\n");
+
+    char outFile [15];
+    sprintf(outFile,"periodic/pFile_%d_%d", periodic_length,file_counter);   
+    strcat(outFile,".txt"); 
+    printf("File %s with seed = %d and skip = %d\n",outFile,seed,skip);
+    /* try to open output file */
+    if ((of = fopen(outFile, "w")) == NULL)
+      error("Output file could not be opened!\n");
 
 
-  // first generate a actual text that will be repeated
+    // first generate a actual text that will be repeated
 
-  char content [periodic_length]; // hold the content
+    char content [periodic_length]; // hold the content
 
-  for (i = 0; i < periodic_length ; i++)
-  {
+    for (i = 0; i < periodic_length ; i++)
+    {
+      for (j = 0; j < skip; j++)  v = msrandom(&seed);
+      asc = (int)(256.0 * msrandom(&seed));
+      c = (char)(asc);
+      content[i] = c; // store the conent
+      //fwrite((void *)(&c), sizeof(char), 1, of);
+    }
+
+    // write thr content to the file until we hit the file limit length
+    for (i = 0; i < n; i+=periodic_length)
+        fwrite(content, sizeof(char), sizeof(content), of);
+
+    fclose(of);
+
     for (j = 0; j < skip; j++)  v = msrandom(&seed);
-    asc = (int)(256.0 * msrandom(&seed));
-    c = (char)(asc);
-    content[i] = c; // store the conent
-    //fwrite((void *)(&c), sizeof(char), 1, of);
-  }
-
-  // write thr content to the file
-  for (i = 0; i < n; i+=periodic_length)
-      fwrite(content, sizeof(char), sizeof(content), of);
-
-  fclose(of);
+    skip = (int) (500 * msrandom(&seed) ); // change the new skip
+  } // end of file_counter for loop
 }
 
 

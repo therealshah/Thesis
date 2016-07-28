@@ -62,33 +62,107 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
-		runArchiveSet();
+		runPeriodic();
+		//runArchiveSet();
 	}
-
 	/*
 		-- This is a helper method to run the periodic dataset basically
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running LocalMinima Periodic");
+		System.out.println("Running KR Periodic");
 		// this is alll the directories we will be running 
-		String [] periodic_directory = {"../thesis-datasets/periodic_100/","../thesis-datasets/periodic_300/","../thesis-datasets/periodic_500/","../thesis-datasets/periodic_700/","../thesis-datasets/periodic_1000/"};
-		
-		// run the dataset
-		for (String dir : periodic_directory){
-			directory = dir;
-			ReadFile.readFile(directory,fileList); // read the two files
-			System.out.println(fileList.get(0) + " " + fileList.get(1));
-			preliminaryStep(directory);
-		 	startCDC();
-		 	fileList.clear(); // clear the list
-		 	fileArray.clear(); // clear the array of files we have read in
-		 	hashed_File_List.clear(); // clear all the hashed files we have
+		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
+		// this is the base of the two files
+		// these two are directories, we will concanate with the numbers to get the full dir name
+		String base_old_file = "../thesis-datasets/input_";
+		String base_new_file = "../thesis-datasets/periodic_";	
+
+		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+			total_iter_count++;
+
+		for (int dir_num : arr){
+			// set up our directories
+
+			String old_file_dir = base_old_file + dir_num + "/";
+			String new_file_dir = base_new_file + dir_num +"/";
+			System.out.println(old_file_dir);
+
+			// read all the files in these two directories in sorted order
+			ArrayList<String> old_file_list = new ArrayList<String>();
+			ArrayList<String> new_file_list = new ArrayList<String>();
+
+			ReadFile.readFile(old_file_dir,old_file_list);
+			ReadFile.readFile(new_file_dir,new_file_list);
+
+
+			// used to store all the runnings for the periodic data
+			double [] block_size_list = new double [total_iter_count];
+			double [] ratio_size_list = new double [total_iter_count];	
+			int totalRuns = 0;
+
+			for (int i = 0; i < old_file_list.size(); ++i){
+				//System.out.println(old_file_list.get(i) + " " + new_file_list.get(i));
+				String [] s1 = old_file_list.get(i).split("_");
+				String [] s2 = new_file_list.get(i).split("_");
+				// input file should corrospond to the output file
+				if (!s1[1].equals(s2[1]) || !s1[2].equals(s2[2]) )
+					System.out.println("We got a huge problem");
+
+				// basically same code as in the prelinaryStep method, but we need to modify it for perdiodic files
+				int start = 0; // start of the sliding window
+				int end = start + window - 1; // ending boundary
+				// we cant call preliminary function, so hash the two files individually 
+				//System.out.println("preliminaryStep " + fileList.get(i));
+				Path p = Paths.get(old_file_dir+old_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
+				Path p2 = Paths.get(new_file_dir+new_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
+
+				byte [] old_file = Files.readAllBytes(p); // read the file in bytes
+				byte [] new_file = Files.readAllBytes(p2);
+				//System.out.println(array.length);
+				ArrayList<Long> old_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
+				ArrayList<Long> new_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
+
+				HashDocument.hashDocument(old_file,old_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+				HashDocument.hashDocument(new_file,new_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
+
+				// now call the startCdc method
+				totalSize = new_file.length; // this is the length of the file
+				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
+
+				if (totalRuns % 10 == 0)
+					System.out.println(totalRuns);
+				totalRuns++;
+
+			}
+
+			// now output the results
+			System.out.println("File dir = " + dir_num + " totalRuns = " +totalRuns);
+			int index = 0;
+			for (int i = startBoundary;i<=endBoundary;i+=increment){
+				// avg out the outputs
+				double blockSize = block_size_list[index]/(double)totalRuns;
+				double ratio = ratio_size_list[index]/(double)totalRuns;
+				System.out.println(i + " " + blockSize + " " + ratio);
+				index++;
 		}
+
+			// now each index matches the corrosponding file
+		}	
+		// // run the dataset
+		// for (String dir : periodic_directory){
+		// 	directory = dir;
+		// 	ReadFile.readFile(directory,fileList); // read the two files
+		// 	System.out.println(fileList.get(0) + " " + fileList.get(1));
+		// 	preliminaryStep(directory);
+		//  	startCDC();
+		//  	fileList.clear(); // clear the list
+		//  	fileArray.clear(); // clear the array of files we have read in
+		//  	hashed_File_List.clear(); // clear all the hashed files we have
+		// }
 		
 	}
-
 	/*
 		-- This is a helper method run datasets such as emacs, gcc etc
 	
@@ -180,7 +254,7 @@ public class LocalMinima{
 					// <0 if less than
 					// 0 if equal
 				// 	// break if this isnt the smallest one
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
@@ -444,7 +518,7 @@ public class LocalMinima{
 					// 0 if equal
 				// 	// break if this isnt the smallest one
 				//System.out.println(current + " " + i + " " + md5Hashes.size());
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
@@ -529,7 +603,7 @@ public class LocalMinima{
 					++i; // we want continute and go to next value. Not we dont just increment i because if it was at the end - 1 value, incrementing it will put it at end and crash
 				}		
 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) 
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				
 				/*-----------------------------------------------------------------------------

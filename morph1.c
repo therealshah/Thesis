@@ -159,5 +159,3 @@ error(char *text)
   printf(text);
   exit(0);
 }
-
-
