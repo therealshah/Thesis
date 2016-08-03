@@ -35,12 +35,9 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../thesis-datasets/periodic_50/";
+	//private static String directory = "../thesis-datasets/gcc/";
 
-	//private static String directory = "../thesis/datasets/1389blog.com/";
-	//private static String directory = "../thesis-datasets/datasets/id.mind.ne/";
-
-	//private static String directory = "../thesis/periodic/";
+	private static String directory = "../thesis-datasets/periodic_300/";
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -64,13 +61,14 @@ public class LocalMinima{
 
 		runPeriodic();
 		//runArchiveSet();
+		//runOtherDataSets();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running KR Periodic");
+		System.out.println("Running 2min Periodic");
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -184,6 +182,7 @@ public class LocalMinima{
 	private static void preliminaryStep(String dir) throws Exception{
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
+
 		// prepoccessing step to hash the document, since we dont need to hash the document again
 		for (int i = 0; i < fileList.size(); ++i){
 			//System.out.println("preliminaryStep " + fileList.get(i));
@@ -192,8 +191,9 @@ public class LocalMinima{
 			//System.out.println(array.length);
 
 			ArrayList<Long> md5Hashes = new ArrayList<Long>(); // make a new arrayList for this document
+		//	System.out.println("Before hashing\n");
 			HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-			
+			//System.out.println("After Hashing\n");
 			// add the fileArray and hashedFile to our lists so we can use them later to run the algorithms
 			// note we hash and read file before, so we don't have to do it again
 			fileArray.add(array);
@@ -476,7 +476,9 @@ public class LocalMinima{
 	private static void readBytes(int localBoundary) throws Exception{
 		// there are only 2 files
 		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+		//System.out.println("Storing chunks");
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		//System.out.println("Running 2min");
 		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 
 		// determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
@@ -518,7 +520,7 @@ public class LocalMinima{
 					// 0 if equal
 				// 	// break if this isnt the smallest one
 				//System.out.println(current + " " + i + " " + md5Hashes.size());
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
@@ -603,7 +605,7 @@ public class LocalMinima{
 					++i; // we want continute and go to next value. Not we dont just increment i because if it was at the end - 1 value, incrementing it will put it at end and crash
 				}		
 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				
 				/*-----------------------------------------------------------------------------

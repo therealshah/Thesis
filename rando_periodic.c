@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <malloc.h>
+#include <errno.h>
 
 
 /******************************************/
@@ -41,7 +42,7 @@ int main (int argc, char *argv[])
   char c;
   int periodic_length;
 
-  int file_number = 100; // number of files to generate
+  int file_number = 1; // number of files to generate
   seed = 123; // starting seed, changes all the time
 
   if (argc != 4)  error("Incorrect number of command line parameters!\n");
@@ -117,7 +118,7 @@ double msrandom(int *seed)
 error(char *text)
 
 {
-  printf(text);
+  printf("%s\n",text);
   exit(0);
 }
 
