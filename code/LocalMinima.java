@@ -31,13 +31,14 @@ public class LocalMinima{
 			
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
+	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
 	//private static String directory = "../thesis-datasets/gcc/";
 
-	private static String directory = "../thesis-datasets/periodic_300/";
+	private static String directory = "../../thesis-datasets/gcc/";
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -45,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -59,9 +60,9 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -418,14 +419,18 @@ public class LocalMinima{
 			int localBoundary = i;
 			System.out.print( localBoundary+" ");
 			readBytes(localBoundary);
+			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
+
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println(blockSize + " " + ratio);
+			System.out.println(blockSize + " " + ratio + " " + HashClass.duplicate_counter);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			coverage = 0;
 			numOfPieces = 0;
+			HashClass.duplicate_counter = 0;
+			HashClass.max_list_length = 0;
 		}	
 	}
 
@@ -462,6 +467,8 @@ public class LocalMinima{
 			matches.clear();
 			coverage = 0;
 			numOfPieces = 0; 		
+			HashClass.duplicate_counter = 0;
+			HashClass.max_list_length = 0;
 		}
 	}
 
@@ -475,7 +482,6 @@ public class LocalMinima{
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
 		// there are only 2 files
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		//System.out.println("Storing chunks");
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
 		//System.out.println("Running 2min");
@@ -534,8 +540,9 @@ public class LocalMinima{
 					for (int j = documentStart; j <= current;++j){
 						builder.append(array[j]); 
 					}
-					String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-					matches.put(hash,1); // simply insert the chunks in the hashtable
+					String original = builder.toString();
+					HashClass.put_hash(original,table); // iinsert the hash in the table
+					//matches.put(hash,1); // simply insert the chunks in the hashtable
 					documentStart = current + 1;// set this as the beginning of the new boundary
 					current = end+ 1; // this is where we start finding the new local minima
 					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
@@ -567,9 +574,8 @@ public class LocalMinima{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]); 
 		}
-
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		matches.put(hash,1); // simply insert the chunks in the document
+		String original = builder.toString();
+		HashClass.put_hash(original,table); // iinsert the hash in the table
 	} // end of the method
 
 	/* -------------------------------------------------------------------------------------------------------
@@ -620,12 +626,15 @@ public class LocalMinima{
 					for (int j = documentStart; j <= current;++j){
 						builder.append(array[j]); 
 					}
-					String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-
+					// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
+					String original = builder.toString();
 					// Check if this value exists in the hash table
 					// If it does, we will increment the coverage count
-					if (matches.get(hash) != null)
-						coverage+= current-documentStart+1; // this is how much we saved
+										// if the string is a perfect match ( hash and original string)
+					if (HashClass.is_string_match(original,table))
+						coverage+= i - documentStart + 1; // this is the amount of bytes we saved
+					// if (matches.get(hash) != null)
+					// 	coverage+= current-documentStart+1; // this is how much we saved
 									
 					documentStart = current + 1;// set this as the beginning of the new boundary
 					current = end+ 1; // this is where we start finding the new local minima
@@ -658,12 +667,11 @@ public class LocalMinima{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]); 
 		}
-
-		String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash our value
-		if (matches.get(hash)!=null)
-			coverage+=array.length - documentStart; // this is how much we saved. Dont need to add 1 cuz end it one past end anyway
-		numOfPieces++; // we just got another boundary piece
-
+		String original = builder.toString();
+		// if the string is a perfect match ( hash and original string)
+		if (HashClass.is_string_match(original,table))
+			coverage+= array.length - documentStart; // this is the amount of bytes we saved
+		numOfPieces++; // increment the num of pieces
 	} // end of the method
 
 

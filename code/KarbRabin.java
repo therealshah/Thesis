@@ -28,11 +28,12 @@ import java.util.zip.*;
 public class KarbRabin{
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
-
+	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
+	private static int duplicate_counter = 0; // count # of duplicates for the hash ( testing purposes)
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	//private static String directory = "../thesis/emacs/";
-	private static String directory = "../thesis-datasets/periodic_50/";	
+	private static String directory = "../../thesis-datasets/gcc/";	
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
@@ -46,9 +47,9 @@ public class KarbRabin{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
@@ -60,8 +61,9 @@ public class KarbRabin{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
+		runOtherDataSets();
 	}
 
 	/*
@@ -354,11 +356,14 @@ public class KarbRabin{
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println( blockSize+ " "+ratio);
+			System.out.println( blockSize+ " "+ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length + " " + numOfPieces);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
+			table.clear();
 			coverage = 0;
-			numOfPieces = 0; 		
+			numOfPieces = 0; 	
+			HashClass.duplicate_counter = 0;
+			HashClass.max_list_length = 0;	
 		}
 	}
 
@@ -391,8 +396,11 @@ public class KarbRabin{
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
+			table.clear(); // clear the table
 			coverage = 0;
-			numOfPieces = 0; 		
+			numOfPieces = 0; 
+			HashClass.duplicate_counter = 0; // reset the duplicate counter
+			HashClass.max_list_length = 0;			
 		}
 	}
 
@@ -422,7 +430,6 @@ public class KarbRabin{
 			------------------------------------------------------------------*/ 
 			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
 			{
-
 				int size = i - documentStart + 1; // we only care about the size
 				if (blockFreq.get(size) == null) // if not in there, then simply store it
 						blockFreq.put(size,1); 
@@ -486,8 +493,9 @@ public class KarbRabin{
 				for (int j = documentStart; j <= i;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				matches.put(hash,1); // simply storing the first document
+				String original = builder.toString();
+				HashClass.put_hash(original,table); // iinsert the hash in the table
+				//matches.put(hash,1); // simply storing the first document
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				builder.setLength(0); // reset the stringBuilder for the next round
 			}		
@@ -503,11 +511,8 @@ public class KarbRabin{
 		for (int j = documentStart; j < array.length;++j ){
 			 builder.append(array[j]); 
 		}
-		// only compute hash and insert into our hashtable only if the string buffer isn't empty
-		if (builder.length() > 0){
-			String hash = MD5Hash.hashString(builder.toString(),"MD5");
-			matches.put(hash,1);
-		}
+		String original = builder.toString();
+		HashClass.put_hash(original,table); // iinsert the hash in the table
 	} // end of the method
 
 
@@ -543,10 +548,12 @@ public class KarbRabin{
 					builder.append(array[j]); 
 				}
 				// check if this hash value exists, if not then add it
-				String hash = MD5Hash.hashString(builder.toString(),"MD5"); // compute the hash of this boundary
-				if (matches.get(hash) != null) // ck if this boundary exists in the hash table
+				String original = builder.toString();
+				// if the string is a perfect match ( hash and original string)
+				if (HashClass.is_string_match(original,table))
 					coverage+= i - documentStart + 1; // this is the amount of bytes we saved
-				
+				// if (matches.get(hash) != null) // ck if this boundary exists in the hash table
+				// 	coverage+= i - documentStart + 1; // this is the amount of bytes we saved
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				numOfPieces++; // increment the num of pieces
 				builder.setLength(0); // reset the stringbuilder so we could re use it 
@@ -563,12 +570,12 @@ public class KarbRabin{
 		for (int j = documentStart; j < array.length;++j){ // hash the last bit of boundary that we may have left
 			builder.append(array[j]); 
 		}
-		if (builder.length() > 0){
-			String hash = MD5Hash.hashString(builder.toString(),"MD5");
-			if (matches.get(hash)!=null)
-				coverage+=array.length - documentStart; // no need to add one because end is already one past the end
-			numOfPieces++; // incremenet the num of pieces
-		}
+		String original = builder.toString();
+		// if the string is a perfect match ( hash and original string)
+		if (HashClass.is_string_match(original,table))
+			coverage+= array.length - documentStart; // this is the amount of bytes we saved
+		numOfPieces++; // increment the num of pieces
+
 	} // end of the method
 
 }
