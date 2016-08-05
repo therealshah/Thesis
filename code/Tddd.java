@@ -37,6 +37,7 @@ import java.util.zip.*;
 public class Tddd{
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
+	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
@@ -44,7 +45,7 @@ public class Tddd{
 
 	//private static String directory = "../thesis/gcc/";
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../thesis-datasets/periodic_50/";
+	private static String directory = "../../thesis-datasets/gcc/";
 
 	private static int window=12;// window size will be fixed around 12
 
@@ -84,14 +85,16 @@ public class Tddd{
  	// 			}
  	// 		}
  	// 	}
- 		runPeriodic();
+ 		// runPeriodic();
+ 		runOtherDataSets();
 	}
 
 	/*
 		-- This is a helper method to run the periodic dataset basically
+
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running 2min Periodic");
+		System.out.println("Running winnowing Periodic");
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -167,17 +170,18 @@ public class Tddd{
 				double ratio = ratio_size_list[index]/(double)totalRuns;
 				System.out.println(i + " " + blockSize + " " + ratio);
 				index++;
-		}
+			}
 
 			// now each index matches the corrosponding file
-		}		
-	}
+		}	
+		
+	}//end of methid
 	/*
 		-- This is a helper method run datasets such as emacs, gcc etc
 	
 	*/
 	private static void runOtherDataSets() throws Exception{
-		System.out.println("Running LocalMinima " + directory);
+		System.out.println("Running tddd " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
@@ -314,105 +318,6 @@ public class Tddd{
 
 
 
-	/*
-		-- This is a helper method to run the periodic dataset basically
-
-	*/
-	private static void runPeriodic() throws Exception {
-		System.out.println("Running KR Periodic");
-		// this is alll the directories we will be running 
-		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
-		// this is the base of the two files
-		// these two are directories, we will concanate with the numbers to get the full dir name
-		String base_old_file = "../thesis-datasets/input_";
-		String base_new_file = "../thesis-datasets/periodic_";	
-
-		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
-		for (int i = startBoundary;i<=endBoundary;i+=increment)
-			total_iter_count++;
-
-		for (int dir_num : arr){
-			// set up our directories
-
-			String old_file_dir = base_old_file + dir_num + "/";
-			String new_file_dir = base_new_file + dir_num +"/";
-			System.out.println(old_file_dir);
-
-			// read all the files in these two directories in sorted order
-			ArrayList<String> old_file_list = new ArrayList<String>();
-			ArrayList<String> new_file_list = new ArrayList<String>();
-
-			ReadFile.readFile(old_file_dir,old_file_list);
-			ReadFile.readFile(new_file_dir,new_file_list);
-
-
-			// used to store all the runnings for the periodic data
-			double [] block_size_list = new double [total_iter_count];
-			double [] ratio_size_list = new double [total_iter_count];	
-			int totalRuns = 0;
-
-			for (int i = 0; i < old_file_list.size(); ++i){
-				//System.out.println(old_file_list.get(i) + " " + new_file_list.get(i));
-				String [] s1 = old_file_list.get(i).split("_");
-				String [] s2 = new_file_list.get(i).split("_");
-				// input file should corrospond to the output file
-				if (!s1[1].equals(s2[1]) || !s1[2].equals(s2[2]) )
-					System.out.println("We got a huge problem");
-
-				// basically same code as in the prelinaryStep method, but we need to modify it for perdiodic files
-				int start = 0; // start of the sliding window
-				int end = start + window - 1; // ending boundary
-				// we cant call preliminary function, so hash the two files individually 
-				//System.out.println("preliminaryStep " + fileList.get(i));
-				Path p = Paths.get(old_file_dir+old_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
-				Path p2 = Paths.get(new_file_dir+new_file_list.get(i)); // read the old file ( the one which we will be using as the base comparason)
-
-				byte [] old_file = Files.readAllBytes(p); // read the file in bytes
-				byte [] new_file = Files.readAllBytes(p2);
-				//System.out.println(array.length);
-				ArrayList<Long> old_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
-				ArrayList<Long> new_file_hashes = new ArrayList<Long>(); // make a new arrayList for this document
-
-				HashDocument.hashDocument(old_file,old_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-				HashDocument.hashDocument(new_file,new_file_hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-
-				// now call the startCdc method
-				totalSize = new_file.length; // this is the length of the file
-				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
-
-				if (totalRuns % 10 == 0)
-					System.out.println(totalRuns);
-				totalRuns++;
-
-			}
-
-			// now output the results
-			System.out.println("File dir = " + dir_num + " totalRuns = " +totalRuns);
-			int index = 0;
-			for (int i = startBoundary;i<=endBoundary;i+=increment){
-				// avg out the outputs
-				double blockSize = block_size_list[index]/(double)totalRuns;
-				double ratio = ratio_size_list[index]/(double)totalRuns;
-				System.out.println(i + " " + blockSize + " " + ratio);
-				index++;
-		}
-
-			// now each index matches the corrosponding file
-		}	
-		// // run the dataset
-		// for (String dir : periodic_directory){
-		// 	directory = dir;
-		// 	ReadFile.readFile(directory,fileList); // read the two files
-		// 	System.out.println(fileList.get(0) + " " + fileList.get(1));
-		// 	preliminaryStep(directory);
-		//  	startCDC();
-		//  	fileList.clear(); // clear the list
-		//  	fileArray.clear(); // clear the array of files we have read in
-		//  	hashed_File_List.clear(); // clear all the hashed files we have
-		// }
-		
-	}
-
 
 
 	private static void startCDC() throws IOException, Exception{
@@ -424,11 +329,7 @@ public class Tddd{
 			long divisor1 = i; // this will be used to mod the results
 			long divisor2 = i/2+1; // the backup divisor is half the original divisor
 			long divisor3 = i/4+1;
-			// minBoundary  = new Long(i); // we will set the mod value as the minimum boundary
-			// maxBoundary = new Long(4*i); // we will set this as the maximum boundary
-			// divisor1 = new Long(i); // this will be used to mod the results
-			// divisor2 = new Long(i/2); // the backup divisor is half the original divisor
-			// divisor3 = new Long(i/4);
+			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
 			runBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // run the karb rabin algorithm
 			// this is the block size per boundary
@@ -439,7 +340,8 @@ public class Tddd{
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			coverage = 0;
-			numOfPieces = 0; 	
+			numOfPieces = 0; 
+			table.clear();	
 		}
 	}
 
@@ -490,7 +392,6 @@ public class Tddd{
 	private static void runBytes(int window, Long divisor1, Long divisor2,Long divisor3, Long remainder,
 		Long minBoundary,Long maxBoundary) throws Exception{
 
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 		runTddd(fileArray.get(1),hashed_File_List.get(1),divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);// here we run 2min, ck how similar the documents are to the one already in the system
 	} // end of the function
@@ -561,8 +462,10 @@ public class Tddd{
 				for (int j = documentStart; j <= point;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				matches.put(hash,1); // simply storing the first document
+				// String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
+				// matches.put(hash,1); // simply storing the first document
+				String original = builder.toString();
+				HashClass.put_hash(original,table); // iinsert the hash in the table
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // reset second backup break point
@@ -584,8 +487,8 @@ public class Tddd{
 		}
 		// only compute hash and insert into our hashtable only if the string buffer isn't empty
 
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		matches.put(hash,1);
+		String original = builder.toString();
+		HashClass.put_hash(original,table); // iinsert the hash in the table
 		
 	} // end of the method
 
@@ -665,8 +568,8 @@ public class Tddd{
 				for (int j = documentStart; j <= point;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				if (matches.get(hash) != null) // ck if this boundary exists in the hash table
+				String original = builder.toString();
+				if (HashClass.is_string_match(original,table))
 					coverage+= point - documentStart + 1; // this is the amount of bytes we saved
 				numOfPieces++; // increment the num of pieces
 				documentStart = point + 1;// set this as the beginning of the new boundary
@@ -689,8 +592,8 @@ public class Tddd{
 			 builder.append(array[j]); 
 		}
 		// only compute hash and insert into our hashtable only if the string buffer isn't empty
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		if (matches.get(hash) != null) // ck if this boundary exists in the hash table
+		String original = builder.toString();
+		if (HashClass.is_string_match(original,table))
 			coverage+= array.length - documentStart ; // this is the amount of bytes we saved
 		numOfPieces++; // increment the num of pieces
 		

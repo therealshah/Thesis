@@ -459,7 +459,6 @@ public class KarbRabin{
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
 	private static void runBytes(long divisor,long remainder) throws Exception{
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor,remainder); // cut up the first file and store it
 		runKarbRabin(fileArray.get(1),hashed_File_List.get(1),divisor,remainder); // call the method again, but on the second file only
 	} // end of the function

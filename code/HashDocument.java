@@ -26,44 +26,44 @@ public class HashDocument{
 	-------------------------------------------------------------------------------------------------------- */
 	public static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
 
-		// StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
-		// // only store the lower 32 bits of the md5Hash
-		// while (end < array.length)
-		// {
-		// 	for (int i = start; i <= end;++i){
-		// 		builder.append(array[i]);  // store the byte in a stringbuilder which we will use to compute hashvalue
-		// 	}		
-		// 	String hash = MD5Hash.hashString(builder.toString(),"MD5"); // compute the hash value
-		// 	long val = Long.parseLong(hash.substring(24),16); // compute the int value of the lower 32 bits
-		// 	md5Hashes.add(val); // put the hash value
-		// 	start++; // increment the starting of the sliding window
-		// 	end++; // increment the ending of the sliding window
-		// 	builder.setLength(0); // to store the sum of the next window
-		// }
-
-
-		// rabin karb kash
 		StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
 		// only store the lower 32 bits of the md5Hash
-		hash_value = 0;
-		for (int i = start; i <= end;++i){
-			hash_value+= array[i] * (Math.pow(multiplier,i));
-		}	
-		md5Hashes.add(hash_value);
-		end++;	// go to next value
-		int m = end - start ;
-
-
 		while (end < array.length)
 		{
-			// subtract off old value
-			hash_value -= array[start]; 
-			hash_value = hash_value / multiplier;
-			hash_value = hash_value + (long)Math.pow(multiplier,m)*array[end];
-			md5Hashes.add(hash_value);
-
-			end++;
+			for (int i = start; i <= end;++i){
+				builder.append(array[i]);  // store the byte in a stringbuilder which we will use to compute hashvalue
+			}		
+			String hash = MD5Hash.hashString(builder.toString(),"MD5"); // compute the hash value
+			long val = Long.parseLong(hash.substring(24),16); // compute the int value of the lower 32 bits
+			md5Hashes.add(val); // put the hash value
+			start++; // increment the starting of the sliding window
+			end++; // increment the ending of the sliding window
+			builder.setLength(0); // to store the sum of the next window
 		}
+
+
+		// // rabin karb kash
+		// StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
+		// // only store the lower 32 bits of the md5Hash
+		// hash_value = 0;
+		// for (int i = start; i <= end;++i){
+		// 	hash_value+= array[i] * (Math.pow(multiplier,i));
+		// }	
+		// md5Hashes.add(hash_value);
+		// end++;	// go to next value
+		// int m = end - start ;
+
+
+		// while (end < array.length)
+		// {
+		// 	// subtract off old value
+		// 	hash_value -= array[start]; 
+		// 	hash_value = hash_value / multiplier;
+		// 	hash_value = hash_value + (long)Math.pow(multiplier,m)*array[end];
+		// 	md5Hashes.add(hash_value);
+
+		// 	end++;
+		// }
 		
-	}
-}
+	} // end of method
+} // end of class

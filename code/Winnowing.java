@@ -32,13 +32,14 @@ import java.util.zip.*;
 public class Winnowing{
 
 	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
+	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 
 	//private static String directory = "../thesis/gcc/";
 	// /private static String directory = "../thesis/emacs/";
-	private static String directory = "../thesis-datasets/periodic_50/";	
+	private static String directory = "../../thesis-datasets/gcc/";	
 
 	//private static String directory = "../thesis/emacs/";
 
@@ -50,9 +51,9 @@ public class Winnowing{
 	private static int numOfPieces=0;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 400; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -60,15 +61,16 @@ public class Winnowing{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
+		runOtherDataSets();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running 2min Periodic");
+		System.out.println("Running winnowing Periodic");
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -154,7 +156,7 @@ public class Winnowing{
 		-- This is a helper method run datasets such as emacs, gcc etc
 	*/
 	private static void runOtherDataSets() throws Exception{
-		System.out.println("Running LocalMinima " + directory);
+		System.out.println("Running winnowing " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
@@ -303,7 +305,8 @@ public class Winnowing{
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			coverage = 0;
-			numOfPieces = 0;		
+			numOfPieces = 0;	
+			table.clear();	
 		}	
 	}
 
@@ -354,7 +357,6 @@ public class Winnowing{
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
-		totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
 		winnowing(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 	} // end of the function
@@ -415,8 +417,10 @@ public class Winnowing{
 				for (int j = documentStart; j <= prevBoundary;++j){
 					builder.append(array[j]);  // append the bytes to a string builder
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-				matches.put(hash,1); // simply insert the chunks in the document
+				String original = builder.toString();
+				HashClass.put_hash(original,table); // iinsert the hash in the table
+				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
+				// matches.put(hash,1); // simply insert the chunks in the document
 				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
 				builder.setLength(0); // reset the stringbuilder for the next round
 				match = false;
@@ -436,8 +440,10 @@ public class Winnowing{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]);  // hash the last boundary
 		}
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		matches.put(hash,1); // simply insert the chunks in the document
+		//String hash = MD5Hash.hashString(builder.toString(),"MD5");
+		//matches.put(hash,1); // simply insert the chunks in the document
+		String original = builder.toString();
+		HashClass.put_hash(original,table); // iinsert the hash in the table
 	
 	} // end of the method
 
@@ -484,9 +490,12 @@ public class Winnowing{
 				for (int j = documentStart; j <= prevBoundary;++j){
 					builder.append(array[j]);  // append the bytes to a string builder
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-				if (matches.get(hash)!= null)
-					coverage += prevBoundary - documentStart + 1; // we have saved this much of the document
+				String original = builder.toString();
+				if (HashClass.is_string_match(original,table))
+					coverage+= prevBoundary - documentStart + 1; // this is the amount of bytes we saved
+				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
+				// if (matches.get(hash)!= null)
+				// 	coverage += prevBoundary - documentStart + 1; // we have saved this much of the document
 				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
 				builder.setLength(0); // reset the stringbuilder for the next round
 				match = false;
@@ -505,11 +514,14 @@ public class Winnowing{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]);  
 		}
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		if (matches.get(hash)!=null)
-			coverage+=array.length - documentStart; // this is how much we saved. Dont need to add 1 cuz end it one past end anyway
-		numOfPieces++; // we just got another boundary piece
-		 			
+		String original = builder.toString();
+		if (HashClass.is_string_match(original,table))
+			coverage+= array.length - documentStart; // this is the amount of bytes we saved
+		numOfPieces++; // increment the num of pieces
+		// String hash = MD5Hash.hashString(builder.toString(),"MD5");
+		// if (matches.get(hash)!=null)
+		// 	coverage+=array.length - documentStart; // this is how much we saved. Dont need to add 1 cuz end it one past end anyway
+		// numOfPieces++; // we just got another boundary piece	
 	} // end of the method
 }
 

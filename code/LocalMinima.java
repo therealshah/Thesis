@@ -46,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -632,7 +632,7 @@ public class LocalMinima{
 					// If it does, we will increment the coverage count
 										// if the string is a perfect match ( hash and original string)
 					if (HashClass.is_string_match(original,table))
-						coverage+= i - documentStart + 1; // this is the amount of bytes we saved
+						coverage+= current - documentStart + 1; // this is the amount of bytes we saved
 					// if (matches.get(hash) != null)
 					// 	coverage+= current-documentStart+1; // this is how much we saved
 									
@@ -838,7 +838,7 @@ public class LocalMinima{
 		}
 		String hash = MD5Hash.hashString(builder.toString(),"MD5");
 		if (matches.get(hash) != null)
-			coverage+= current-documentStart+1; // this is how much we saved
+			coverage+= array.length-documentStart+1; // this is how much we saved
 	} // end of the method
 
 }
