@@ -36,6 +36,7 @@ public class HashClass{
 			if (!list.contains(original)){
 				list.add(original);
 				duplicate_counter++; 
+				System.out.println("Duplicate encountered");
 			}
 		}
 	} // end of method

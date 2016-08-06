@@ -31,42 +31,17 @@ public class Test{
 
 	public static void main(String [] args){
 
-		String test = "test";
-		String t = "t";
-		String a = "a";
+		String test = "This is a test run of the rolling hash function of adler";
+		byte [] b = test.getBytes();
 
-
-		System.out.println();
-
-		 BigInteger val = new BigInteger(MD5Hash.hashString(test.toString(),"MD5"),16);
-		 BigInteger val2 = new BigInteger(MD5Hash.hashString(t.toString(),"MD5"),16);
-		 BigInteger val3 = new BigInteger(MD5Hash.hashString(a.toString(),"MD5"),16);
-		 val = val.subtract(val2);
-		 val = val.add(val3);
-		 System.out.println(val.toString(16));
-
-
-	}
-
-
-
-
-
-	public static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
-		// rolling hash
-		StringBuilder builder = new StringBuilder(); // used as a sliding window and compute the hash value of each window
-			// only store the lower 32 bits of the md5Hash
-		while (end < array.length)
-		{
-			for (int i = start; i <= end;++i){
-				builder.append(array[i]);  // store the byte in a stringbuilder which we will use to compute hashvalue
-			}		
-			String hash = MD5Hash.hashString(builder.toString(),"MD5"); // compute the hash value
-			long val = Long.parseLong(hash.substring(24),16); // compute the int value of the lower 32 bits
-			md5Hashes.add(val); // put the hash value
-			start++; // increment the starting of the sliding window
-			end++; // increment the ending of the sliding window
-			builder.setLength(0); // to store the sum of the next window
+		Adler32 sum = new Adler32();
+		int window = 3; // sliding window of 3
+		int off = 0;
+		while (off < b.length){
+			sum.update(b,off,window);	
+			System.out.println(sum.getValue());
+			off+=window; // go to next window
 		}
+
 	}
 }

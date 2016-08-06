@@ -172,7 +172,7 @@ public class KarbRabin{
 	
 	*/
 	private static void runOtherDataSets() throws Exception{
-		System.out.println("Running LocalMinima " + directory);
+		System.out.println("Running KR " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
@@ -356,7 +356,7 @@ public class KarbRabin{
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println( blockSize+ " "+ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length + " " + numOfPieces);
+			System.out.println( blockSize+ " "+ratio);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			table.clear();
