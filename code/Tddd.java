@@ -55,9 +55,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -71,22 +71,23 @@ public class Tddd{
 	public static void main(String [] args) throws Exception
  	{
 
-		// //runPeriodic();
- 	// 	int [] min_arr = {1,2};
- 	// 	int [] max_arr = {6,7,8};
- 	// 	// run it for different min/max values
- 	// 	for (int i : min_arr){
- 	// 		for (int j:max_arr){
- 	// 			if (i < j){
- 	// 				System.out.println("Min = " + i + " Max = " + j);
- 	// 				min_multiplier=i;
- 	// 				max_multiplier = j;
- 	// 				runArchiveSet();
- 	// 			}
- 	// 		}
- 	// 	}
+		//runPeriodic();
+ 		int [] min_arr = {2};
+ 		int [] max_arr = {8};
+ 		// run it for different min/max values
+ 		for (int i : min_arr){
+ 			for (int j:max_arr){
+ 				if (i < j){
+ 					System.out.println("Min = " + i + " Max = " + j);
+ 					min_multiplier=i;
+ 					max_multiplier = j;
+ 					//runArchiveSet();
+ 					runPeriodic();
+ 				}
+ 			}
+ 		}
  		// runPeriodic();
- 		runOtherDataSets();
+ 		//runOtherDataSets();
 	}
 
 	/*
@@ -94,13 +95,13 @@ public class Tddd{
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running winnowing Periodic");
+		System.out.println("Running TDDD Periodic");
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
 		// these two are directories, we will concanate with the numbers to get the full dir name
-		String base_old_file = "../thesis-datasets/input_";
-		String base_new_file = "../thesis-datasets/periodic_";	
+		String base_old_file = "../../thesis-datasets/input_";
+		String base_new_file = "../../thesis-datasets/periodic_";	
 
 		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -188,7 +189,110 @@ public class Tddd{
 	 	startCDC();
 	}
 
+	/*
+		- This method is used has a helper method to run the algo for the archive dataset
+		- Note the archive set has multiple directories ( one for each url )
+		- So Read all of the directories in first and for each directory run the code
+	*/
+	private static void runArchiveSet() throws Exception{
 
+		System.out.println("Running TDDD archive");
+		directory = "../../thesis-datasets/datasets2/";
+		File file = new File(directory);
+		String[] directory_list = file.list(new FilenameFilter() {
+		  @Override
+		  public boolean accept(File current, String name) {
+		    return new File(current, name).isDirectory(); // make sure its a directory
+		  }
+		});
+
+		int totalRuns = 0; // used to avg the runs in the end
+		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
+		for (int i = startBoundary;i<=endBoundary;i+=increment)
+			total_iter_count++;
+
+		//System.out.println(Arrays.toString(directory_list));
+		int sets = 0;
+		// make the arrays to hold the respecitve info for the different verions\
+		// run it simulateounsly to speed the from the program!
+		double [] block_size_list_last_year = new double [total_iter_count];
+		double [] ratio_size_list_last_year = new double [total_iter_count];	
+
+		double [] block_size_list_six_month = new double [total_iter_count];
+		double [] ratio_size_list__six_month = new double [total_iter_count];
+
+		double [] block_size_list_two_year = new double [total_iter_count];
+		double [] ratio_size_list_two_year = new double [total_iter_count];	
+
+		int current = 0;
+		int six_month = 2;
+		int last_year = 1;
+		int two_year = 3;
+		// loop through and run the cdc for each directory
+		for (String dir : directory_list){
+
+			ReadFile.readFile(directory+ dir,fileList); // read all the files in this directory
+			preliminaryStep(directory+ dir + "/"); // call the preliminaryStep on all the files
+			
+			totalRuns++;
+
+			
+			totalSize = fileArray.get(current).length; // get the length of the file we will be running it against!
+			
+			// run it against six month
+			startCDC(block_size_list_six_month,ratio_size_list__six_month,fileArray.get(current),fileArray.get(six_month),hashed_File_List.get(current),hashed_File_List.get(six_month));
+			
+			// run it against last year
+			startCDC(block_size_list_last_year,ratio_size_list_last_year,fileArray.get(current),fileArray.get(last_year),hashed_File_List.get(current),hashed_File_List.get(last_year));
+
+			// run it against 2
+			startCDC(block_size_list_two_year,ratio_size_list_two_year,fileArray.get(current),fileArray.get(two_year),hashed_File_List.get(current),hashed_File_List.get(two_year));
+
+			// // clear the fileList and hashed_file_list array
+			fileArray.clear();
+			hashed_File_List.clear();
+			fileList.clear();
+
+			// if (Double.isNaN(ratio_size_list[0])){
+			// 	System.out.println(sets+" "+Arrays.toString(ratio_size_list));
+			// 	test = true;
+			// 	break;
+			// }
+			if (sets % 200 == 0)
+				System.out.println(sets);
+			++sets;
+		} // end of directory list for loop
+
+
+		// now output the avged value for all the runs
+		//System.out.println(Arrays.toString(ratio_size_list));
+		System.out.println("Printing six_month");
+		int index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			// avg out the outputs
+			double blockSize = block_size_list_six_month[index]/(double)totalRuns;
+			double ratio = ratio_size_list__six_month[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+		System.out.println("Printing last year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_last_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_last_year[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+
+		System.out.println("Printing two year");
+		index = 0;
+		for (int i = startBoundary;i<=endBoundary;i+=increment){
+			double blockSize = block_size_list_two_year[index]/(double)totalRuns;
+			double ratio = ratio_size_list_two_year[index]/(double)totalRuns;
+			System.out.println(i + " " + blockSize + " " + ratio);
+			index++;
+		}
+	}
 
 
 
@@ -342,6 +446,8 @@ public class Tddd{
 			coverage = 0;
 			numOfPieces = 0; 
 			table.clear();	
+			HashClass.duplicate_counter = 0;
+			HashClass.max_list_length = 0;
 		}
 	}
 
@@ -377,7 +483,10 @@ public class Tddd{
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			coverage = 0;
-			numOfPieces = 0; 		
+			numOfPieces = 0; 
+			table.clear();
+			HashClass.duplicate_counter = 0;
+			HashClass.max_list_length = 0;		
 		}
 	}
 

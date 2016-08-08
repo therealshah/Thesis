@@ -76,8 +76,8 @@ public class KarbRabin{
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
 		// these two are directories, we will concanate with the numbers to get the full dir name
-		String base_old_file = "../thesis-datasets/input_";
-		String base_new_file = "../thesis-datasets/periodic_";	
+		String base_old_file = "../../thesis-datasets/input_";
+		String base_new_file = "../../thesis-datasets/periodic_";	
 
 		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -215,7 +215,7 @@ public class KarbRabin{
 	private static void runArchiveSet() throws Exception{
 
 		System.out.println("Running KarbRabin archive");
-		directory = "../thesis-datasets/datasets2/";
+		directory = "../../thesis-datasets/datasets2/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -356,7 +356,7 @@ public class KarbRabin{
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println( blockSize+ " "+ratio);
+			System.out.println( blockSize+ " "+ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
 			table.clear();
@@ -493,7 +493,7 @@ public class KarbRabin{
 					builder.append(array[j]); // store everything upto the current value
 				}
 				String original = builder.toString();
-				HashClass.put_hash(original,table); // iinsert the hash in the table
+				HashClass.put_hash(original,table);
 				//matches.put(hash,1); // simply storing the first document
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				builder.setLength(0); // reset the stringBuilder for the next round
@@ -511,7 +511,7 @@ public class KarbRabin{
 			 builder.append(array[j]); 
 		}
 		String original = builder.toString();
-		HashClass.put_hash(original,table); // iinsert the hash in the table
+		HashClass.put_hash(original,table);
 	} // end of the method
 
 
@@ -549,7 +549,7 @@ public class KarbRabin{
 				// check if this hash value exists, if not then add it
 				String original = builder.toString();
 				// if the string is a perfect match ( hash and original string)
-				if (HashClass.is_string_match(original,table))
+				if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
 					coverage+= i - documentStart + 1; // this is the amount of bytes we saved
 				// if (matches.get(hash) != null) // ck if this boundary exists in the hash table
 				// 	coverage+= i - documentStart + 1; // this is the amount of bytes we saved
@@ -571,7 +571,7 @@ public class KarbRabin{
 		}
 		String original = builder.toString();
 		// if the string is a perfect match ( hash and original string)
-		if (HashClass.is_string_match(original,table))
+		if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
 			coverage+= array.length - documentStart; // this is the amount of bytes we saved
 		numOfPieces++; // increment the num of pieces
 

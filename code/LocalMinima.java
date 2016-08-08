@@ -74,8 +74,8 @@ public class LocalMinima{
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
 		// these two are directories, we will concanate with the numbers to get the full dir name
-		String base_old_file = "../thesis-datasets/input_";
-		String base_new_file = "../thesis-datasets/periodic_";	
+		String base_old_file = "../../thesis-datasets/input_";
+		String base_new_file = "../../thesis-datasets/periodic_";	
 
 		int total_iter_count = 0; // this is used check how many times we will iterate through the data so we can make an array of that size
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
@@ -312,8 +312,8 @@ public class LocalMinima{
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		System.out.println("Running KarbRabin archive");
-		directory = "../thesis-datasets/datasets2/";
+		System.out.println("Running LocalMinima archive");
+		directory = "../../thesis-datasets/datasets2/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
 		  @Override
@@ -424,9 +424,10 @@ public class LocalMinima{
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println(blockSize + " " + ratio + " " + HashClass.duplicate_counter);
+			System.out.println(blockSize + " " + ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
+			table.clear();
 			coverage = 0;
 			numOfPieces = 0;
 			HashClass.duplicate_counter = 0;
@@ -465,6 +466,7 @@ public class LocalMinima{
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			matches.clear();
+			table.clear();
 			coverage = 0;
 			numOfPieces = 0; 		
 			HashClass.duplicate_counter = 0;

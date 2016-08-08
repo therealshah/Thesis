@@ -18,7 +18,6 @@ public class HashDocument{
 				4. End - ending point of the hash window 
 		-- We are hashing the while document here
 		-- We hash the document using a sliding window
-		-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
 	-------------------------------------------------------------------------------------------------------- */
 	public static void hashDocument(byte [] array, ArrayList<Long> md5Hashes, int start, int end ){
 
@@ -28,8 +27,27 @@ public class HashDocument{
 
 	} // end of method
 
+		/* -------------------------------------------------------------------------------------------------------
+	This method:
+		-- Takes in four params: 
+				1. array - this is the byte array that actually holds the document contents
+				2. md5Hashes - will store the hash values of the entire document hashed
+				3. Start - starting point of the hash window (most likely 0)
+				4. End - ending point of the hash window 
+		-- We are hashing only the portion we are passed in and return it
+
+	-------------------------------------------------------------------------------------------------------- */
+	public static long hashValue(byte [] array, int start, int end ){
+
+		//compute_rabinKarb_hash(array,md5Hashes,start,end);
+		//compute_adler32_hash(array,md5Hashes,start,end);
+		return zsync_adler32_hash(array,start,end); // hash a single value
+
+	} // end of m
+
 	/*
 		-- hashes the document using md5hash
+		-- We will compute the md5Hash and only store the lower 32 bits (4bytes each)
 	*/
 	private static void compute_md5_hash(byte [] array, ArrayList<Long> md5Hashes, int start, int end){
 
@@ -118,8 +136,8 @@ public class HashDocument{
 
 	} //  end of method
 
-		/*
-		-- Computes the adler32 hash
+	/*
+		-- Computes the adler32 hash of the entire document
 	*/
 	private static void zsync_adler32_hash(byte [] array, ArrayList<Long> md5Hashes, int start, int end){
 		long s1 = 0;
@@ -170,9 +188,30 @@ public class HashDocument{
 			end++;
 			start++;
 		}
-
 	} //  end of method
 
+	/*
+		-- Computes the adler32 hash of the small section of the array
+	*/
+	private static long zsync_adler32_hash(byte [] array, int start, int end){
+		long s1 = 0;
+		long s2 = 0;
+		long s3 = 0;
+		long s4 = 0;
+		long hash_value;
+		int len = 0;
 
+		// get initial values
+		for(int i = start; i <= end; i++){
+		 s1 += array[i];
+		 s2 += s1;
+		 s3 += s2;
+		 s4 += s3;
+		 len++;
+		}
+		s1 &= 0xff;  s2 &= 0xff;  s3 &= 0xff;  s4 &= 0xff; // make numbers unsigned
+  		hash_value = (s4 << 24) | (s3 << 16) | (s2 << 8) | s1;
+		return hash_value;
+	} //  end of method
 
 } // end of class

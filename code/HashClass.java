@@ -22,7 +22,7 @@ public class HashClass{
 
 	*/
 	public static void put_hash(String original,HashMap<String,ArrayList<String>> table){
-		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundary
+		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundary. USe MD5 to reduce the probability of collision
 		if (table.get(hash) == null){
 			// insert it with a new arraylist
 			ArrayList<String> list = new ArrayList<String>(); // make a new list to hold the values
@@ -36,7 +36,9 @@ public class HashClass{
 			if (!list.contains(original)){
 				list.add(original);
 				duplicate_counter++; 
-				System.out.println("Duplicate encountered");
+				if (list.size() > max_list_length)
+					max_list_length = list.size();
+				//System.out.println("Duplicate encountered");
 			}
 		}
 	} // end of method
@@ -49,7 +51,8 @@ public class HashClass{
 			- table - hashtable that store hash value with associated strings
 	*/
 	public static boolean is_string_match(String original,HashMap<String,ArrayList<String>> table){
-		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundaryy
+		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundary
+
 		if (table.get(hash) != null){
 			ArrayList<String> list = table.get(hash);
 			// if this string already doesnt exist, insert it and incrememnt counter
