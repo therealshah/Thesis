@@ -62,8 +62,8 @@ public class KarbRabin{
  	{
 
 		//runPeriodic();
-		//runArchiveSet();
-		runOtherDataSets();
+		runArchiveSet();
+		//runOtherDataSets();
 	}
 
 	/*

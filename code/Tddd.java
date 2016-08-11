@@ -56,8 +56,8 @@ public class Tddd{
 
 	// variables for the boundary size
 	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 5; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
