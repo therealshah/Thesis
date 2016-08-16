@@ -38,7 +38,7 @@ public class Winnowing{
 
 	//private static String directory = "../thesis/gcc/";
 	// /private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/gcc/";	
+	private static String directory = "../../thesis-datasets/emacs/";	
 
 	//private static String directory = "../thesis/emacs/";
 
@@ -61,8 +61,8 @@ public class Winnowing{
  	{
 
 		//runPeriodic();
-		runArchiveSet();
-		//runOtherDataSets();
+		//runArchiveSet();
+		runOtherDataSets();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically

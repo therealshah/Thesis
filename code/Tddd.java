@@ -43,7 +43,7 @@ public class Tddd{
 
 	//private static String directory = "../thesis/gcc/";
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../../thesis-datasets/gcc/";
+	private static String directory = "../../thesis-datasets/emacs/";
 
 	private static int window=12;// window size will be fixed around 12
 
@@ -79,7 +79,8 @@ public class Tddd{
  					System.out.println("Min = " + i + " Max = " + j);
  					min_multiplier=i;
  					max_multiplier = j;
- 					runArchiveSet();
+ 					runOtherDataSets();
+ 					//runArchiveSet();
  					//runPeriodic();
  				}
  			}

@@ -32,7 +32,7 @@ public class KarbRabin{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	//private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/emacs/";	
+	private static String directory = "../../thesis-datasets/gcc/";	
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
