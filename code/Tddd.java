@@ -35,8 +35,6 @@ import java.util.zip.*;
 
 
 public class Tddd{
-
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
@@ -55,9 +53,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 5; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -81,8 +79,8 @@ public class Tddd{
  					System.out.println("Min = " + i + " Max = " + j);
  					min_multiplier=i;
  					max_multiplier = j;
- 					//runArchiveSet();
- 					runPeriodic();
+ 					runArchiveSet();
+ 					//runPeriodic();
  				}
  			}
  		}
@@ -272,7 +270,7 @@ public class Tddd{
 			// avg out the outputs
 			double blockSize = block_size_list_six_month[index]/(double)totalRuns;
 			double ratio = ratio_size_list__six_month[index]/(double)totalRuns;
-			System.out.println(i + " " + blockSize + " " + ratio);
+			System.out.println(i + " " +i/2+1 + " " + i/4 +1 + " " + blockSize + " " + ratio);
 			index++;
 		}
 		System.out.println("Printing last year");
@@ -442,7 +440,6 @@ public class Tddd{
 			System.out.println( blockSize+ " "+ratio);
 
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			coverage = 0;
 			numOfPieces = 0; 
 			table.clear();	
@@ -481,7 +478,6 @@ public class Tddd{
 			ratio_size_list[index] += ratio;
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			coverage = 0;
 			numOfPieces = 0; 
 			table.clear();
@@ -542,8 +538,8 @@ public class Tddd{
 				for (int j = documentStart; j <= i;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				matches.put(hash,1); // simply storing the first document
+				String original = builder.toString();
+				HashClass.put_hash(original,table);
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // second backup point reset it!
@@ -571,8 +567,6 @@ public class Tddd{
 				for (int j = documentStart; j <= point;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				// String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				// matches.put(hash,1); // simply storing the first document
 				String original = builder.toString();
 				HashClass.put_hash(original,table); // iinsert the hash in the table
 				documentStart = point + 1;// set this as the beginning of the new boundary
@@ -645,8 +639,9 @@ public class Tddd{
 				for (int j = documentStart; j <= i;++j){
 					builder.append(array[j]); // store everything upto the current value
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5");	// hash this boundary
-				if (matches.get(hash) != null) // ck if this boundary exists in the hash table
+				String original = builder.toString();
+				// if the string is a perfect match ( hash and original string)
+				if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
 					coverage+= i - documentStart + 1; // this is the amount of bytes we saved
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this

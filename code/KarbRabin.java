@@ -27,7 +27,6 @@ import java.util.zip.*;
 
 public class KarbRabin{
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 	private static int duplicate_counter = 0; // count # of duplicates for the hash ( testing purposes)
 	// used to store the files in the list
@@ -61,8 +60,8 @@ public class KarbRabin{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
-		runArchiveSet();
+		runPeriodic();
+		//runArchiveSet();
 		//runOtherDataSets();
 	}
 
@@ -150,19 +149,7 @@ public class KarbRabin{
 		}
 
 			// now each index matches the corrosponding file
-		}	
-		// // run the dataset
-		// for (String dir : periodic_directory){
-		// 	directory = dir;
-		// 	ReadFile.readFile(directory,fileList); // read the two files
-		// 	System.out.println(fileList.get(0) + " " + fileList.get(1));
-		// 	preliminaryStep(directory);
-		//  	startCDC();
-		//  	fileList.clear(); // clear the list
-		//  	fileArray.clear(); // clear the array of files we have read in
-		//  	hashed_File_List.clear(); // clear all the hashed files we have
-		// }
-		
+		}			
 	}
 
 	/*
@@ -358,7 +345,6 @@ public class KarbRabin{
 			double ratio = (double)coverage/(double)totalSize;
 			System.out.println( blockSize+ " "+ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			table.clear();
 			coverage = 0;
 			numOfPieces = 0; 	
@@ -395,7 +381,6 @@ public class KarbRabin{
 			ratio_size_list[index] += ratio;
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			table.clear(); // clear the table
 			coverage = 0;
 			numOfPieces = 0; 

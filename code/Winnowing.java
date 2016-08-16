@@ -31,7 +31,6 @@ import java.util.zip.*;
 
 public class Winnowing{
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
@@ -51,9 +50,9 @@ public class Winnowing{
 	private static int numOfPieces=0;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 400; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -61,8 +60,8 @@ public class Winnowing{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
-		//runArchiveSet();
+		//runPeriodic();
+		runArchiveSet();
 		//runOtherDataSets();
 	}
 	/*
@@ -408,7 +407,6 @@ public class Winnowing{
 			System.out.println(blockSize + " " + ratio);
 
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			coverage = 0;
 			numOfPieces = 0;	
 			table.clear();	
@@ -444,7 +442,6 @@ public class Winnowing{
 			ratio_size_list[index] += ratio;
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
 			table.clear();
 			coverage = 0;
 			numOfPieces = 0; 
@@ -528,7 +525,7 @@ public class Winnowing{
 					builder.append(array[j]);  // append the bytes to a string builder
 				}
 				String original = builder.toString();
-				HashClass.put_hash(array,documentStart,prevBoundary,original,table); // iinsert the hash in the table
+				HashClass.put_hash(original,table); // iinsert the hash in the table
 				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
 				// matches.put(hash,1); // simply insert the chunks in the document
 				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
@@ -553,7 +550,7 @@ public class Winnowing{
 		//String hash = MD5Hash.hashString(builder.toString(),"MD5");
 		//matches.put(hash,1); // simply insert the chunks in the document
 		String original = builder.toString();
-		HashClass.put_hash(array,documentStart,prevBoundary,original,table); // iinsert the hash in the table
+		HashClass.put_hash(original,table); // iinsert the hash in the table
 	
 	} // end of the method
 
@@ -601,7 +598,7 @@ public class Winnowing{
 					builder.append(array[j]);  // append the bytes to a string builder
 				}
 				String original = builder.toString();
-				if (HashClass.put_hash(array,documentStart,prevBoundary,original,table); // iinsert the hash in the table)
+				if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
 					coverage+= prevBoundary - documentStart + 1; // this is the amount of bytes we saved
 				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
 				// if (matches.get(hash)!= null)
@@ -625,7 +622,7 @@ public class Winnowing{
 			builder.append(array[j]);  
 		}
 		String original = builder.toString();
-		if (HashClass.put_hash(array,documentStart,prevBoundary,original,table); // iinsert the hash in the table)
+		if (HashClass.is_string_match(original,table))
 			coverage+= array.length - documentStart; // this is the amount of bytes we saved
 		numOfPieces++; // increment the num of pieces
 		// String hash = MD5Hash.hashString(builder.toString(),"MD5");

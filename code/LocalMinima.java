@@ -30,7 +30,7 @@ import java.lang.*;
 public class LocalMinima{
 			
 
-	private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
+	//private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
 	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
 	// used to store the files in the list
@@ -427,7 +427,7 @@ public class LocalMinima{
 			double ratio = (double)coverage/(double)totalSize;
 			System.out.println(blockSize + " " + ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
+			// matches.clear();
 			table.clear();
 			coverage = 0;
 			numOfPieces = 0;
@@ -466,7 +466,7 @@ public class LocalMinima{
 
 			++index;
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
-			matches.clear();
+			// matches.clear();
 			table.clear();
 			coverage = 0;
 			numOfPieces = 0; 		
@@ -529,7 +529,7 @@ public class LocalMinima{
 					// 0 if equal
 				// 	// break if this isnt the smallest one
 				//System.out.println(current + " " + i + " " + md5Hashes.size());
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
@@ -614,7 +614,7 @@ public class LocalMinima{
 					++i; // we want continute and go to next value. Not we dont just increment i because if it was at the end - 1 value, incrementing it will put it at end and crash
 				}		
 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				
 				/*-----------------------------------------------------------------------------
@@ -633,12 +633,9 @@ public class LocalMinima{
 					String original = builder.toString();
 					// Check if this value exists in the hash table
 					// If it does, we will increment the coverage count
-										// if the string is a perfect match ( hash and original string)
+					// if the string is a perfect match ( hash and original string)
 					if (HashClass.is_string_match(original,table))
-						coverage+= current - documentStart + 1; // this is the amount of bytes we saved
-					// if (matches.get(hash) != null)
-					// 	coverage+= current-documentStart+1; // this is how much we saved
-									
+						coverage+= current - documentStart + 1; // this is the amount of bytes we saved		
 					documentStart = current + 1;// set this as the beginning of the new boundary
 					current = end+ 1; // this is where we start finding the new local minima
 					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
@@ -678,7 +675,7 @@ public class LocalMinima{
 	} // end of the method
 
 
-	//======================================================================================================== TEST CODE
+//======================================================================================================== TEST CODE
 
 	/*
 		- Finds the hash value with the lowest value within the specified range
@@ -736,8 +733,8 @@ public class LocalMinima{
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-				matches.put(hash,1); // simply insert the chunks in the hashtable
+				String original = builder.toString();
+				HashClass.put_hash(original,table); // iinsert the hash in the table
 				documentStart = current + 1;// set this as the beginning of the new boundary
 				start = current + 1;// set this as the beginning of the new boundary
 				current = start + localBoundary; // this is where we start finding the new local minima
@@ -765,8 +762,8 @@ public class LocalMinima{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]); 
 		}
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		matches.put(hash,1); // simply insert the chunks in the document
+		String original = builder.toString();
+		HashClass.put_hash(original,table); // iinsert the hash in the tableent
 	} // end of the method
 
 
@@ -806,10 +803,10 @@ public class LocalMinima{
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}
-				String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
+				String original = builder.toString();
 
-				if (matches.get(hash) != null)
-						coverage+= current-documentStart+1; // this is how much we saved\
+				if (HashClass.is_string_match(original,table))
+					coverage+= current - documentStart + 1; // this is the amount of bytes we saved
 
 				documentStart = current + 1;// set this as the beginning of the new boundary
 				numOfPieces++;
@@ -839,9 +836,9 @@ public class LocalMinima{
 		for (int j = documentStart; j < array.length;++j ){
 			builder.append(array[j]); 
 		}
-		String hash = MD5Hash.hashString(builder.toString(),"MD5");
-		if (matches.get(hash) != null)
-			coverage+= array.length-documentStart+1; // this is how much we saved
+		String original = builder.toString();
+		if (HashClass.is_string_match(original,table))
+			coverage+= array.length-documentStart; // this is how much we saved
 	} // end of the method
 
 }
