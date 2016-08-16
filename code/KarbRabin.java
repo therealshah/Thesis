@@ -32,7 +32,7 @@ public class KarbRabin{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	//private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/gcc/";	
+	private static String directory = "../../thesis-datasets/emacs/";	
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
@@ -60,9 +60,9 @@ public class KarbRabin{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 	}
 
 	/*
@@ -343,7 +343,7 @@ public class KarbRabin{
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println( blockSize+ " "+ratio + " " + HashClass.duplicate_counter + " " + HashClass.max_list_length);
+			System.out.println( blockSize+ " "+ratio);
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			table.clear();
 			coverage = 0;
