@@ -62,7 +62,9 @@ public class Winnowing{
 
 		//runPeriodic();
 		//runArchiveSet();
-		runOtherDataSets();
+		//runOtherDataSets();
+		runMorphDataSet();
+
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -265,6 +267,36 @@ public class Winnowing{
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
 	 	startCDC();
+	}
+
+
+	/*
+		-- This is a helper methid to run the morph files
+	*/
+	private static void runMorphDataSet() throws Exception{
+
+		String morph_directory = "../../thesis-datasets/morph/"; // directory where all the morph code is stored
+		File d = new File(morph_directory);
+	    // get all the files from a directory
+	    File[] fList = d.listFiles();
+	    List<String> dir_list = new ArrayList<String>();
+	    for (File file : fList) {
+	        if (file.isDirectory()) {
+	            dir_list.add(file.getName());
+	        }
+	    }
+	    for (String dir : dir_list){
+	    	directory = morph_directory + dir + "/";
+	    	System.out.println("Running KR " + directory);
+			ReadFile.readFile(directory,fileList); // read the two files
+			System.out.println(fileList.get(0) + " " + fileList.get(1));
+			preliminaryStep(directory);
+		 	startCDC();
+		 	fileList.clear();
+		 	fileArray.clear();
+		 	hashed_File_List.clear();
+	    }
+
 	}
 
 

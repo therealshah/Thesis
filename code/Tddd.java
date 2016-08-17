@@ -79,9 +79,11 @@ public class Tddd{
  					System.out.println("Min = " + i + " Max = " + j);
  					min_multiplier=i;
  					max_multiplier = j;
- 					runOtherDataSets();
+ 					//runOtherDataSets();
  					//runArchiveSet();
  					//runPeriodic();
+ 					runMorphDataSet();
+
  				}
  			}
  		}
@@ -186,6 +188,35 @@ public class Tddd{
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
 	 	startCDC();
+	}
+
+	/*
+		-- This is a helper methid to run the morph files
+	*/
+	private static void runMorphDataSet() throws Exception{
+
+		String morph_directory = "../../thesis-datasets/morph/"; // directory where all the morph code is stored
+		File d = new File(morph_directory);
+	    // get all the files from a directory
+	    File[] fList = d.listFiles();
+	    List<String> dir_list = new ArrayList<String>();
+	    for (File file : fList) {
+	        if (file.isDirectory()) {
+	            dir_list.add(file.getName());
+	        }
+	    }
+	    for (String dir : dir_list){
+	    	directory = morph_directory + dir + "/";
+	    	System.out.println("Running KR " + directory);
+			ReadFile.readFile(directory,fileList); // read the two files
+			System.out.println(fileList.get(0) + " " + fileList.get(1));
+			preliminaryStep(directory);
+		 	startCDC();
+		 	fileList.clear();
+		 	fileArray.clear();
+		 	hashed_File_List.clear();
+	    }
+
 	}
 
 	/*
@@ -433,7 +464,7 @@ public class Tddd{
 			long divisor2 = i/2+1; // the backup divisor is half the original divisor
 			long divisor3 = i/4+1;
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
-			System.out.print( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
+			System.out.print( divisor1+" " + divisor2 + " " + divisor3 + " ");
 			runBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary); // run the karb rabin algorithm
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;

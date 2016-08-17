@@ -84,7 +84,7 @@ double msrandom(int *seed)
 error(char *text)
 
 {
-  printf(text);
+  printf("%s",text);
   exit(0);
 }
 

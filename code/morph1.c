@@ -58,26 +58,16 @@ int main (int argc, char *argv[])
 
   if (argc != 4)  error("Incorrect number of command line parameters!\n");
 
- //  skip = atoi(argv[1]);
- //  //printf("Prob = %s " , argv[2]);
- //  char* str = argv[2];
-  
- // // p = atof(argv[2]);
- //  p = atof(str);
- //  //printf("Testing\n");
- //  printf("The probability = %f\n",p);
- //  q = atof(argv[3]);
- //  inFile1 = argv[4];
- //  inFile2 = argv[5];
- //  outFile = argv[6];
   inFile1 = argv[1];
   inFile2 = argv[2];
   outFile = argv[3];
     
 
+  printf("Please Eneter the number of skips, probability of staying in file 1 and probability of staying in file 2:" );
   scanf("%d %lf %lf",&skip,&p,&q);
   printf("The probability of staying in file 1 = %f\n",p);
   printf("The probability of staying in file 2 = %f\n",q);
+
 
   /* try to open input files */
   if (((if1 = fopen(inFile1, "r")) == NULL) || 
@@ -156,6 +146,6 @@ double msrandom(int *seed)
 error(char *text)
 
 {
-  printf(text);
+  printf("%s",text);
   exit(0);
 }
