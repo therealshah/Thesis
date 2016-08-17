@@ -43,7 +43,7 @@ public class Tddd{
 
 	//private static String directory = "../thesis/gcc/";
 	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../../thesis-datasets/emacs/";
+	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 
 	private static int window=12;// window size will be fixed around 12
 
@@ -53,9 +53,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -79,10 +79,10 @@ public class Tddd{
  					System.out.println("Min = " + i + " Max = " + j);
  					min_multiplier=i;
  					max_multiplier = j;
- 					//runOtherDataSets();
+ 					runOtherDataSets();
  					//runArchiveSet();
  					//runPeriodic();
- 					runMorphDataSet();
+ 					//runMorphDataSet();
 
  				}
  			}
@@ -207,7 +207,7 @@ public class Tddd{
 	    }
 	    for (String dir : dir_list){
 	    	directory = morph_directory + dir + "/";
-	    	System.out.println("Running KR " + directory);
+	    	System.out.println("Running TDDD " + directory);
 			ReadFile.readFile(directory,fileList); // read the two files
 			System.out.println(fileList.get(0) + " " + fileList.get(1));
 			preliminaryStep(directory);

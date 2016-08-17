@@ -38,7 +38,7 @@ public class LocalMinima{
 	//private static String directory = "../thesis-datasets/gcc/";
 	//private static String directory = "../thesis-datasets/gcc/";
 
-	private static String directory = "../../thesis-datasets/gcc/";
+	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -46,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -62,8 +62,8 @@ public class LocalMinima{
 
 		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
-		runMorphDataSet();
+		runOtherDataSets();
+		//runMorphDataSet();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -193,7 +193,7 @@ public class LocalMinima{
 	    }
 	    for (String dir : dir_list){
 	    	directory = morph_directory + dir + "/";
-	    	System.out.println("Running KR " + directory);
+	    	System.out.println("Running 2min " + directory);
 			ReadFile.readFile(directory,fileList); // read the two files
 			System.out.println(fileList.get(0) + " " + fileList.get(1));
 			preliminaryStep(directory);
