@@ -29,8 +29,6 @@ public class KarbRabinTiming{
 
 	private static String directory = "../thesis-datasets/gcc/";
 	//private static String directory = "../thesis-datasets/emacs/";
-
-	
 	
 	private static int window =12 ;// window size will be fixed around 12
 	private static int numOfPieces=0;  // used to calculate block size
@@ -77,7 +75,7 @@ public class KarbRabinTiming{
 		byte [] array = Files.readAllBytes(p); // read the file in bytes
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
-		totalSize = array.length;
+		totalSize = array.length; // total size is fixed
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 	}
 
@@ -121,20 +119,14 @@ public class KarbRabinTiming{
 		- This is basically sets up everything and calls the actual contentDependant methods
 	*/
 	private static void startCDC() throws Exception{
-		Long remainder = new Long(7); // this is the remainder that we will be comparing with
-		//Long divisor;
+		long remainder = 7; // this is the remainder that we will be comparing with
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{
-			/*--------------------------------------------------------------------------------------------
-			-- Run the karb rabin algorithm for the set mod values
-			-- We will use the local boundary for all the way up to the value the user entered
-			-------------------------------------------------------------------------------------------------*/
 			long divisor = i;
 			readBytes(divisor,remainder); // run the karb rabin algorithm
 			numOfPieces = 0; // reset this
 			index++; // go to the next index
-		}
-		//in.close();		
+		}	
 	}
 
 
@@ -169,7 +161,6 @@ public class KarbRabinTiming{
 	private static void determineCutPoints(ArrayList<Long> md5Hashes,long divisor,long remainder){
 
 		ArrayList<Long> cutpoints = new ArrayList<Long>(); // used to hold all the cutpoints of the document
-		// loop through all the values in the document
 		for (int i = 0; i < md5Hashes.size();++i)
 		{ 	
 			/*-----------------------------------------------------------------
@@ -179,8 +170,7 @@ public class KarbRabinTiming{
 			if (md5Hashes.get(i)%divisor == remainder){ // ck if this equals the mod value
 				cutpoints.add(md5Hashes.get(i));// store this index as the cutpoint for the boundary
 				numOfPieces++; // to compute the avg blockSize
-			}
-								
+			}							
 		} // end of the for loop
 	} // end of the method
 }

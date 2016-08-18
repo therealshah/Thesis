@@ -40,10 +40,7 @@ public class Tddd{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
-
-	//private static String directory = "../thesis/gcc/";
-	//private static String directory = "../thesis-datasets/gcc/";
-	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
+	private static String directory = "../../thesis-datasets/emacs/";	
 
 	private static int window=12;// window size will be fixed around 12
 
@@ -53,9 +50,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -544,19 +541,20 @@ public class Tddd{
 
 		-- We are simply choping up the first file
 	-------------------------------------------------------------------------------------------------------- */
-	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long divisor3, Long remainder,
-		Long minBoundary,Long maxBoundary){
+	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes, long divisor1, long divisor2,long divisor3, long remainder,
+		long minBoundary,long maxBoundary){
 
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		int backUpBreakPoint = -1; // used to store the backup breakpoint
 		int secondBackUpBreakPoint = -1; // this is the second backup point with the divisor3
 		StringBuilder builder = new StringBuilder();
+		int i = documentStart + (int)minBoundary-1 ; // so we start at the minimum
 		// loop through all the values in the document
-		for (int i = 0; i < md5Hashes.size();++i)
+		for (; i < md5Hashes.size();++i)
 		{ 	
-			if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
-				continue;
+			// if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
+			// 	continue;
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
@@ -575,6 +573,7 @@ public class Tddd{
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // second backup point reset it!
+				i = i + (int)minBoundary-1; // skip all the way here
 				builder.setLength(0); // reset the stringBuilder for the next round
 			}		
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
@@ -604,9 +603,8 @@ public class Tddd{
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // reset second backup break point
-				i = point ; // we start i from here again
+				i = point + (int)minBoundary-1; // so we start at the minimum
 				builder.setLength(0); // reset the stringBuilder for the next round
-
 			}
 								
 		} // end of the for loop
@@ -646,18 +644,19 @@ public class Tddd{
 		-- we will see if we have one with divisor2, if not, then we will see if we have one with divisor3 and so on
 		-- We will hash everything in that hash boundary and store it
 	-------------------------------------------------------------------------------------------------------- */
-	private static void runTddd(byte[] array, ArrayList<Long> md5Hashes, Long divisor1, Long divisor2,Long divisor3, Long remainder,
-		Long minBoundary,Long maxBoundary){
+	private static void runTddd(byte[] array, ArrayList<Long> md5Hashes, long divisor1, long divisor2,long divisor3, long remainder,
+		long minBoundary,long maxBoundary){
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		int backUpBreakPoint = -1; // used to store the backup breakpoint
 		int secondBackUpBreakPoint = -1; // used with the divisor3
 		StringBuilder builder = new StringBuilder();
+		int i =  documentStart + (int)minBoundary-1 ; // so we start at the minimum
 		// loop through all the values in the document
-		for (int i = 0; i < md5Hashes.size();++i)
+		for (; i < md5Hashes.size();++i)
 		{ 	
-			if ((i - documentStart + 1) < minBoundary) //  if the size of this boundary is less than the min, continue looping
-				continue;
+			// if ((i - documentStart + 1) < minBoundary) //  if the size of this boundary is less than the min, continue looping
+			// 	continue;
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
@@ -679,6 +678,7 @@ public class Tddd{
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1;
 				numOfPieces++; // increment the num of pieces
+				i = i + (int)minBoundary-1; // skip all the way here
 				builder.setLength(0); // reset the stringBuilder for the next round
 			}		
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
@@ -711,7 +711,7 @@ public class Tddd{
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // reset the secondBackUp point
-				i = point ; // we start i from here again
+				i = point +(int)minBoundary-1; // skip all the way here ; 
 				builder.setLength(0); // reset the stringBuilder for the next round
 
 			}

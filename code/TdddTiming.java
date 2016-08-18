@@ -56,7 +56,7 @@ public class TdddTiming{
 		for (int i = 0; i < runs; ++i){
 		//	System.out.println("======================== Run " + i + " " + fileList.get(0));
 			index = 0;
-			driverRun(); // driver for taking in inputs and running the 2min method
+			startCDC(); // driver for taking in inputs and running the 2min method
 		}
 		// now output the average
 		index = 0;
@@ -89,7 +89,7 @@ public class TdddTiming{
 
 
 	private static void driverRun() throws IOException, Exception{
-		Long remainder = new Long(7);
+		long remainder = 7;
 
 		for (int i = startBoundary;i<=endBoundary; i+= increment )
 		{
@@ -155,8 +155,6 @@ public class TdddTiming{
 		// loop through all the values in the document
 		for (; i < md5Hashes.size();++i)
 		{ 	
-			if ((i - documentStart + 1) < minBoundary ) //  if the size of this boundary is less than the min, continue looping
-				continue;
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
@@ -169,6 +167,7 @@ public class TdddTiming{
 				documentStart = i + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // second backup point reset it!
+				i = i + (int)minBoundary-1; // skip all the way here
 			}		
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
 				backUpBreakPoint = i; // this is the backup breakpoint
@@ -191,7 +190,7 @@ public class TdddTiming{
 				documentStart = point + 1;// set this as the beginning of the new boundary
 				backUpBreakPoint = -1; // reset this
 				secondBackUpBreakPoint = -1; // reset second backup break point
-				i = documentStart + (int)minBoundary - 2 ; // we start i from here again // subtract 2 because we will increment i
+				i = point + (int)minBoundary-1; // skip all the way here
 			}
 								
 		} // end of the for loop

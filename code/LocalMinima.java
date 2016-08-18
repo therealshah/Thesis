@@ -169,11 +169,13 @@ public class LocalMinima{
 	
 	*/
 	private static void runOtherDataSets() throws Exception{
+
 		System.out.println("Running LocalMinima " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
 	 	startCDC();
+	 	
 	}
 
 	/*
@@ -513,9 +515,7 @@ public class LocalMinima{
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
 		// there are only 2 files
-		//System.out.println("Storing chunks");
 		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		//System.out.println("Running 2min");
 		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 
 		// determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
@@ -557,7 +557,7 @@ public class LocalMinima{
 					// 0 if equal
 				// 	// break if this isnt the smallest one
 				//System.out.println(current + " " + i + " " + md5Hashes.size());
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				/*-----------------------------------------------------------------------------
 					We have reached the end. Meaning all the values within the range 
@@ -642,7 +642,7 @@ public class LocalMinima{
 					++i; // we want continute and go to next value. Not we dont just increment i because if it was at the end - 1 value, incrementing it will put it at end and crash
 				}		
 
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) // less than or equal to
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
 					break; // we will break if the value at the current index is not a local minima
 				
 				/*-----------------------------------------------------------------------------
@@ -682,7 +682,9 @@ public class LocalMinima{
 				current++;
 				end++;
 			}
-			match = false; // reset this match								
+			match = false; // reset this match		
+
+
 		} // end of the while loop
 
 		// -------------------------------------------------------------------------------------------
@@ -734,30 +736,41 @@ public class LocalMinima{
 
 		int l_min = findMin(start,current-1,md5Hashes); //find min from left side
 		int r_min = findMin(current + 1,end,md5Hashes); // find min from right side
+		long l_val = md5Hashes.get(l_min);
+		long r_val = md5Hashes.get(r_min);
 		/*--------------------------------------------------
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-								
-			// ck of l_min and r_min are valid ( as in are within the boundary range)
-			if (!(l_min >= start))
-				l_min = findMin(start,current-1,md5Hashes); // find new min
-			if (!(r_min > current))
-				r_min = findMin(current+1,end,md5Hashes);
-
 			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
-			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0))
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
 				l_min = current-1; // this is the new l_min
+				l_val = md5Hashes.get(l_min);
+			}
+				// ck of l_min and r_min are valid ( as in are within the boundary range)
+			else if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
 			// compare r_min to the new value that was just slided in , as in the end value
-			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0))
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
 				r_min = end; // this is the new l_min
-
+				r_val = md5Hashes.get(r_min);
+			}
+			else if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
+								
+		
 			/*-----------------------------------------------------------------------------
 				 if current is the minimum, we have a boundary
 			--------------------------------------------------------------------------------*/
-			if (md5Hashes.get(current).compareTo(md5Hashes.get(Math.min(r_min,l_min))) < 0){
+			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
+			{
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}
@@ -781,8 +794,7 @@ public class LocalMinima{
 				current++;
 				end++;
 			}
-			match = false; // reset this match
-								
+			match = false; // reset this match			
 		} // end of the while loop
 
 
@@ -805,28 +817,37 @@ public class LocalMinima{
 
 		int l_min = findMin(start,current-1,md5Hashes); //find min from left side
 		int r_min = findMin(current + 1,end,md5Hashes); // find min from right side
+
+		long l_val = md5Hashes.get(l_min);
+		long r_val = md5Hashes.get(r_min);
 		/*--------------------------------------------------
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-			// ck of l_min and r_min are valid ( as in are within the boundary range)
-			if (!(l_min >= start))
-				l_min = findMin(start,current-1,md5Hashes); // find new min
-			if (!(r_min > current))
-				r_min = findMin(current+1,end,md5Hashes);
-
 			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
-			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0))
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
 				l_min = current-1; // this is the new l_min
+				l_val = md5Hashes.get(l_min);
+			}
+				// ck of l_min and r_min are valid ( as in are within the boundary range)
+			else if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
 			// compare r_min to the new value that was just slided in , as in the end value
-			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0))
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
 				r_min = end; // this is the new l_min
-			/*-----------------------------------------------------------------------------
-				 if current is the minimum, we have a boundary
-			--------------------------------------------------------------------------------*/
-			if (md5Hashes.get(current).compareTo(md5Hashes.get(Math.min(r_min,l_min))) < 0)
+				r_val = md5Hashes.get(r_min);
+			}
+			else if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
+
+			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
 			{
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
@@ -856,7 +877,8 @@ public class LocalMinima{
 				end++;
 			}
 			match = false; // reset this match
-								
+
+
 		} // end of the while loop
 
 

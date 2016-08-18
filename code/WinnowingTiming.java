@@ -36,14 +36,12 @@ public class WinnowingTiming{
 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 	private static int totalSize;
-
-
 	private static int startBoundary = 100;
 	private static int endBoundary = 1000;
 	private static int increment = 50;
 	private static int arraySize = (endBoundary/increment) - 1; // number of elements
-	private static long timeArray [] = new long[arraySize]; // default values are 0
-	private static double blockArray [] = new double[arraySize]; // default is 0
+	private static long []  timeArray = new long[arraySize]; // default values are 0
+	private static double [] blockArray  = new double[arraySize]; // default is 0
 	private static int index = 0; // used to store the values in the time array 
 	private static int runs = 100; // number of time to run the code
 
@@ -60,7 +58,7 @@ public class WinnowingTiming{
 		for (int i = 0; i < runs; ++i){
 		//	System.out.println("======================== Run " + i + " " + fileList.get(0));
 			index = 0;
-			driverRun(); // driver for taking in inputs and running the 2min method
+			startCDC(); // driver for taking in inputs and running the 2min method
 		}
 
 			// now output the average
@@ -91,16 +89,14 @@ public class WinnowingTiming{
 	}
 
 
-
-	private static void driverRun() throws IOException, Exception{
+	/*
+		- This is basically sets up everything and calls the actual contentDependant methods
+	*/
+	private static void startCDC() throws Exception{
 
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{
 			int localBoundary = i;
-		/*--------------------------------------------------------------------------------------------
-					-- Run the 2 min algorithm for all the way upto the value the user enters
-					-- We will use the local boundary for all the way up to the value the user entered
-		-------------------------------------------------------------------------------------------------*/
 			//System.out.print( localBoundary+" ");
 			// run the winnowing algorithm
 			readBytes(localBoundary);

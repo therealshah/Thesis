@@ -112,6 +112,7 @@ public class LocalMinimaTiming{
 		// this is where we start the timing 
 		long startTime = System.nanoTime();
 		determineCutPoints(md5Hashes,localBoundary);
+		//determineCutPoints(md5Hashes,localBoundary);
 		// This is where we end the timing	
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
@@ -209,58 +210,69 @@ public class LocalMinimaTiming{
 		 [start - current-1 ] - left interval
 		 [current + 1 - end] - right interval
 	-------------------------------------------------------------------------------------------------------- */
-	// private static void determineCutPoints_way2(ArrayList<Long> md5Hashes, int localBoundary){
-	// 	int start = 0; // starting point
-	// 	int current = localBoundary;// has to be atlead here to be the local minima
-	// 	int end  = localBoundary *2;  // this is the end of the boundary
-	// 	int documentStart = 0; // used to keep track of where the boundaries start from
-	// 	boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
-	// 	ArrayList<Long> cutpoints = new ArrayList<Long>(); // this arraylist is used to hold the cutpoints
+	private static void determineCutPoints_way2(ArrayList<Long> md5Hashes, int localBoundary){
+		int start = 0; // starting point
+		int current = localBoundary;// has to be atlead here to be the local minima
+		int end  = localBoundary *2;  // this is the end of the boundary
+		int documentStart = 0; // used to keep track of where the boundaries start from
+		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
+		ArrayList<Long> cutpoints = new ArrayList<Long>(); // this arraylist is used to hold the cutpoints
 
-	// 	int l_min = findMin(start,current-1,md5Hashes); //find min from left side
-	// 	int r_min = findMin(current + 1,end,md5Hashes); // find min from right side
-	// 	/*--------------------------------------------------
-	// 		-- Now we run the window over and compute the value
-	// 		-- in each window and store in hash table
-	// 	----------------------------------------------------*/
-	// 	while (end<md5Hashes.size()) // loop through till we hit the end of the array
-	// 	{ 
+		int l_min = findMin(start,current-1,md5Hashes); //find min from left side
+		int r_min = findMin(current + 1,end,md5Hashes); // find min from right side
+		long l_val = md5Hashes.get(l_min);
+		long r_val = md5Hashes.get(r_min);
+		/*--------------------------------------------------
+			-- Now we run the window over and compute the value
+			-- in each window and store in hash table
+		----------------------------------------------------*/
+		while (end<md5Hashes.size()) // loop through till we hit the end of the array
+		{ 
 								
-	// 		if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
-	// 			++i; // we don't wanna compare withourselves	
-	// 		// ck of l_min and r_min are valid ( as in are within the boundary range)
-	// 		if (!(l_min >= start && l_min < current))
-	// 			l_min = findMin(start,current-1,md5Hashes); // find new min
-	// 		if (!(r_min > current && r_min <= end))
-	// 			r_min = findMin(current+1,end,md5Hashes);
-
-	// 		/*-----------------------------------------------------------------------------
-	// 			 if current is the minimum, we have a boundary
-	// 		--------------------------------------------------------------------------------*/
-	// 		if (md5Hashes.get(current).compareTo(md5Hashes.get(min(r_min,l_min))) < 0)
-	// 		{
-	// 			cutpoints.add(md5Hashes.get(current)); // simply add the boundary point to the array
-	// 			start = current + 1;// set this as the beginning of the new boundary
-	// 			current = start + localBoundary; // this is where we start finding the new local minima
-	// 			end = current + localBoundary; // this is the new end of the hash boundary
-	// 			match = true; // so we don't increment our window values
-	// 			numOfPieces++; // we have added a cutpoint
-	// 			l_min = r_min; // the right min is now the new l_min
-	// 			r_min = findMin(current+1,end,md5Hashes);// find new r_min
-	// 		}
+			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
+				l_min = current-1; // this is the new l_min
+				l_val = md5Hashes.get(l_min);
+			}
+				// ck of l_min and r_min are valid ( as in are within the boundary range)
+			else if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
+			// compare r_min to the new value that was just slided in , as in the end value
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
+				r_min = end; // this is the new l_min
+				r_val = md5Hashes.get(r_min);
+			}
+			else if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
+			/*-----------------------------------------------------------------------------
+				 if current is the minimum, we have a boundary
+			--------------------------------------------------------------------------------*/
+			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
+			{
+				cutpoints.add(md5Hashes.get(current)); // simply add the boundary point to the array
+				start = current + 1;// set this as the beginning of the new boundary
+				current = start + localBoundary; // this is where we start finding the new local minima
+				end = current + localBoundary; // this is the new end of the hash boundary
+				match = true; // so we don't increment our window values
+				numOfPieces++; // we have added a cutpoint
+			}
 		
-	// 		// go to the next window only if we didnt find a match
-	// 		// because if we did find a boundary, we would automatically go to the next window
-	// 		if (!match)
-	// 		{
-	// 			start++;
-	// 			current++;
-	// 			end++;
-	// 		}
-	// 		match = false; // reset this match
-								
-	// 	} // end of the while loop
-	// } // end of the method
+			// go to the next window only if we didnt find a match
+			// because if we did find a boundary, we would automatically go to the next window
+			if (!match)
+			{
+				start++;
+				current++;
+				end++;
+			}
+			match = false; // reset this match
+		} // end of the while loop
+	} // end of the method
 }
 
 
