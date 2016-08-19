@@ -28,7 +28,7 @@ public class LocalMinimaTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 
-	private static String directory = "../thesis-datasets/gcc/";
+	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
 	//private static String directory = "../thesis-datasets/emacs/";
 
 	private static int window = 12;// window is size 12
@@ -55,7 +55,7 @@ public class LocalMinimaTiming{
 		for (int i = 0; i < runs; ++i){
 		//	System.out.println("======================== Run " + i + " " + fileList.get(0));
 			index = 0;
-			driverRun(); // driver for taking in inputs and running the 2min method
+			startCDC(); // driver for taking in inputs and running the 2min method
 		}
 
 			// now output the average
@@ -85,7 +85,7 @@ public class LocalMinimaTiming{
 
 
 
-	private static void driverRun() throws IOException, Exception{
+	private static void startCDC() throws IOException, Exception{
 
 		for (int i = startBoundary;i<=endBoundary;i+= increment)
 		{			
@@ -111,8 +111,8 @@ public class LocalMinimaTiming{
 	private static void readBytes(int localBoundary) throws Exception{
 		// this is where we start the timing 
 		long startTime = System.nanoTime();
-		determineCutPoints(md5Hashes,localBoundary);
 		//determineCutPoints(md5Hashes,localBoundary);
+		determineCutPoints_way2(md5Hashes,localBoundary);
 		// This is where we end the timing	
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime); // this how long this method took
@@ -228,27 +228,32 @@ public class LocalMinimaTiming{
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-								
+
+
+			// ck of l_min and r_min are valid ( as in are within the boundary range)
+			if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
 			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
 			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
 				l_min = current-1; // this is the new l_min
 				l_val = md5Hashes.get(l_min);
 			}
-				// ck of l_min and r_min are valid ( as in are within the boundary range)
-			else if (!(l_min >= start && l_min < current)){
-				l_min = findMin(start,current-1,md5Hashes); // find new min
-				l_val = md5Hashes.get(l_min);
-			}
+
+			if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
 			// compare r_min to the new value that was just slided in , as in the end value
 			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
 				r_min = end; // this is the new l_min
 				r_val = md5Hashes.get(r_min);
 			}
-			else if (!(r_min > current)){
-				r_min = findMin(current+1,end,md5Hashes);
-				r_val = md5Hashes.get(r_min);
-			}		
-					
+		
+
+
 			/*-----------------------------------------------------------------------------
 				 if current is the minimum, we have a boundary
 			--------------------------------------------------------------------------------*/

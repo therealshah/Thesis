@@ -62,8 +62,9 @@ public class KarbRabin{
 
 		//runPeriodic();
 		//runArchiveSet();
-		runOtherDataSets();
+		//runOtherDataSets();
 		//runMorphDataSet();
+		getBlockFrequency();
 	}
 
 	/*
@@ -332,31 +333,78 @@ public class KarbRabin{
 
 	// this method basically will chop up the blocks and get their frequencies
 	private static void getBlockFrequency() throws Exception{
-		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		directory = "../../thesis-datasets/morph_file_100MB/";
+		ReadFile.readFile(directory,fileList); // read the two files
+		preliminaryStep(directory);
+		//System.out.println("Choping the document KR " + fileList.get(0));
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
-		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
-		byte [] array = Files.readAllBytes(p); // read the file into a byte array
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
 		long remainder = 7;
-		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 		
-		long [] divisorArray = {500,1000}; // run the frequency code for these divisor values (AKA expected block Size)
+		long [] divisorArray = {1000}; // run the frequency code for these divisor values (AKA expected block Size)
 		for (long divisor: divisorArray ){
-			System.out.println("Running Likelihood for " + divisor);
-			int totalBlocks = chopDocument(array,md5Hashes,blockFreq,divisor,remainder);
+			//System.out.println("Running Likelihood for " + divisor);
+			int totalBlocks = chopDocument(fileArray.get(0),hashed_File_List.get(0),blockFreq,divisor,remainder);
 			// now output the block sizes, along with there frequencies and probilities
 			for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
 				// output the block freq
-				double prob = (double)tuple.getValue() / (double)totalBlocks;
+				double prob = (double)tuple.getValue() / (double)totalBlocks; // calculating the prob
 				System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
 		
 			}
-			md5Hashes.clear();
+			//md5Hashes.clear();
 			blockFreq.clear();
 		}
 	}
 
+
+
+	/*-----------------------------------------------------------------------------------------------
+	This method:
+		--	@param:
+			1. array - this is the byte array that actually holds the document contents
+			2. md5Hases - holds the entire hash values of the document
+			3. blockFreq - Store the block sizes, along with there frequencies
+			4. Divisor - the value we will be dividing by 
+			5. This determines if this is a boundary point for the docu
+			@return: - returns the total number of block chunks
+
+		-- We are simply finding how the document is chopped up using this winnowing
+	-------------------------------------------------------------------------------------------------------- */
+	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes,HashMap<Integer,Integer> blockFreq, Long divisor, Long remainder ){
+		int documentStart = 0; // used to keep track of where the boundaries are
+		boolean match = false; // used to ck if we encountered a match
+		int counter = 0;
+		// loop through all the values in the document
+		for (int i = 0; i < md5Hashes.size();++i)
+		{ 	
+			/*-----------------------------------------------------------------
+				- If the mod of this equals the modvalue we defined, then 
+				- this is a boundary
+			------------------------------------------------------------------*/ 
+			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
+			{
+				int size = i - documentStart + 1; // we only care about the size
+				if (blockFreq.get(size) == null) // if not in there, then simply store it
+						blockFreq.put(size,1); 
+				else // increment it's integer count
+					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+				counter++; // increment the block count
+				documentStart = i + 1;// set this as the beginning of the new boundary
+			}		
+								
+		} // end of the for loop
+
+		// get the last block size
+		int size = array.length - documentStart;
+		if (blockFreq.get(size) == null) // if not in there, then simply store it
+			blockFreq.put(size,1); 
+		else // increment it's integer count
+			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+		return ++counter;
+
+	} // end of the method
 
 
 	/*
@@ -420,51 +468,6 @@ public class KarbRabin{
 	}
 
 
-	/*-----------------------------------------------------------------------------------------------
-	This method:
-		--	@param:
-			1. array - this is the byte array that actually holds the document contents
-			2. md5Hases - holds the entire hash values of the document
-			3. blockFreq - Store the block sizes, along with there frequencies
-			4. Divisor - the value we will be dividing by 
-			5. This determines if this is a boundary point for the docu
-			@return: - returns the total number of block chunks
-
-		-- We are simply finding how the document is chopped up using this winnowing
-	-------------------------------------------------------------------------------------------------------- */
-	private static int chopDocument(byte [] array, ArrayList<Long> md5Hashes,HashMap<Integer,Integer> blockFreq, Long divisor, Long remainder ){
-		int documentStart = 0; // used to keep track of where the boundaries are
-		boolean match = false; // used to ck if we encountered a match
-		int counter = 0;
-		// loop through all the values in the document
-		for (int i = 0; i < md5Hashes.size();++i)
-		{ 	
-			/*-----------------------------------------------------------------
-				- If the mod of this equals the modvalue we defined, then 
-				- this is a boundary
-			------------------------------------------------------------------*/ 
-			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
-			{
-				int size = i - documentStart + 1; // we only care about the size
-				if (blockFreq.get(size) == null) // if not in there, then simply store it
-						blockFreq.put(size,1); 
-				else // increment it's integer count
-					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
-				counter++; // increment the block count
-				documentStart = i + 1;// set this as the beginning of the new boundary
-			}		
-								
-		} // end of the for loop
-
-		// get the last block size
-		int size = array.length - documentStart;
-		if (blockFreq.get(size) == null) // if not in there, then simply store it
-			blockFreq.put(size,1); 
-		else // increment it's integer count
-			blockFreq.put(size,blockFreq.get(size)+1); // increment the count
-		return ++counter;
-
-	} // end of the method
 
 
 	/*

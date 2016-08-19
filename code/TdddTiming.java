@@ -26,9 +26,9 @@ public class TdddTiming{
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
-	private static String directory = "../thesis-datasets/gcc/";
+	//private static String directory = "../../thesis-datasets/gcc/";
 	//private static String directory = "../thesis-datasets/emacs/";
-
+	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
 	private static int window = 12;// window size will be fixed around 12
 	private static int numOfPieces=0;  // used to calculate block size
 
@@ -50,18 +50,18 @@ public class TdddTiming{
 	// made a different method so i can call the timing for all the CDC algos with a single java helper class method
 	public static void main(String [] args) throws Exception{
 		
-		//preliminaryStep();
-		//System.out.println("========== Running TDDD " + " " + runs + " " + fileList.get(0));
+		preliminaryStep();
+		System.out.println("========== Running TDDD " + " " + runs + " " + fileList.get(0));
 
 		for (int i = 0; i < runs; ++i){
 		//	System.out.println("======================== Run " + i + " " + fileList.get(0));
 			index = 0;
 			startCDC(); // driver for taking in inputs and running the 2min method
 		}
-		// now output the average
+		//now output the average
 		index = 0;
 		for (int i = startBoundary; i <= endBoundary; i+=increment){
-			System.out.println(i + " " + i/2+1 + " " + i/4+1+ " " + blockArray[index] + " " + timeArray[index]/(long)runs);
+			System.out.println(i + " " + (i/2+1) + " " + (i/4+1)+ " " + blockArray[index] + " " + timeArray[index]/(long)runs);
 			index++;
 		}
 		
@@ -88,7 +88,7 @@ public class TdddTiming{
 
 
 
-	private static void driverRun() throws IOException, Exception{
+	private static void startCDC() throws IOException, Exception{
 		long remainder = 7;
 
 		for (int i = startBoundary;i<=endBoundary; i+= increment )
@@ -99,7 +99,7 @@ public class TdddTiming{
 			long divisor1 = i;// this will be used to mod the results
 			long divisor2 = i/2+1; // the backup divisor is half the original divisor
 			long divisor3 = i/4+1;
-			System.out.println( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
+			//System.out.println( divisor1+" " + divisor2 + " " + " " + divisor3 + " ");
 			readBytes(window,divisor1,divisor2,divisor3,remainder,minBoundary,maxBoundary);
 			numOfPieces = 0; // reset the num of pieces
 			index++;

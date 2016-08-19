@@ -36,9 +36,9 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-	//private static String directory = "../thesis-datasets/gcc/";
+  	private static String directory = "../../thesis-datasets/emacs/";
 
-	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
+	//private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -46,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -62,8 +62,9 @@ public class LocalMinima{
 
 		//runPeriodic();
 		//runArchiveSet();
-		runOtherDataSets();
+		//runOtherDataSets();
 		//runMorphDataSet();
+		getBlockFrequency();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -235,24 +236,27 @@ public class LocalMinima{
 
 	// this method basically will chop up the blocks and get their frequencies
 	private static void getBlockFrequency() throws Exception{
-		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		directory = "../../thesis-datasets/morph_file_100MB/";
+		ReadFile.readFile(directory,fileList); // read the two files
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
-		System.out.println(fileList.get(0));
-		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
-		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		preliminaryStep(directory);
+		//System.out.println("Choping the document 2min " + fileList.get(0));
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
-		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 		
-		int localBoundary = 500;
-		//System.out.println("Running Likelihood for " + localBoundary);
-		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
-		// now output the block sizes, along with there frequencies and probilities
-		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
-			// output the block freq
-			double prob = (double)tuple.getValue() / (double)totalBlocks;
-			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
-		}	
+		int [] local_boundary_array = {1000};
+		for (int localBoundary: local_boundary_array){
+			//System.out.println("Running Likelihood for " + localBoundary);
+			int totalBlocks = chopDocument(fileArray.get(0),hashed_File_List.get(0),localBoundary,blockFreq);
+			// now output the block sizes, along with there frequencies and probilities
+			for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+				// output the block freq
+				double prob = (double)tuple.getValue() / (double)totalBlocks;
+				System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+			}
+
+			blockFreq.clear();	
+		}
 	}
 
 	/* -------------------------------------------------------------------------------------------------------
@@ -271,46 +275,61 @@ public class LocalMinima{
 		int end  = localBoundary *2;  // this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries start from
 		boolean match = false; // used to ck if we encountered a match and is used to determine whether to increment the hash window
+
+		int l_min = findMin(start,current-1,md5Hashes); //find min from left side
+		int r_min = findMin(current + 1,end,md5Hashes); // find min from right side
+		long l_val = md5Hashes.get(l_min);
+		long r_val = md5Hashes.get(r_min);
 		/*--------------------------------------------------
 			-- Now we run the window over and compute the value
 			-- in each window and store in hash table
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
-			for (int i = start; i <= end; ++i) // loop through each of the values in this boundary
-			{							
-				if (i == current) // we are looking for strictly less than, so we don't want to compare with ourselve
-					++i; // we don't wanna compare withourselves		
-				// CompareTo returns
-					// >0 if greater
-					// <0 if less than
-					// 0 if equal
-				// 	// break if this isnt the smallest one
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) // less than or equal to
-					break; // we will break if the value at the current index is not a local minima
-				/*-----------------------------------------------------------------------------
-					We have reached the end. Meaning all the values within the range 
-					(documentStart,Current) is a boundary
-				--------------------------------------------------------------------------------*/
-				if (i == end)
-				{
-					int size = current - documentStart + 1; // this is the size of this block freq
-					//System.out.println(size);
-					if (blockFreq.get(size) == null){ // if not in there, then simply store it}
-						blockFreq.put(size,1); // simply insert the chunks in the document
-						//System.out.println("in here");
-					}
-					else // increment it's integer count
-						blockFreq.put(size,blockFreq.get(size)+1); // increment the count
-					counter++; // increment the block count
-					documentStart = current + 1;// set this as the beginning of the new boundary
-					current = end+ 1; // this is where we start finding the new local minima
-					start = documentStart; // we will start comparing from here!, since everything before this is a boundary
-					end = current + localBoundary; // this is the new end of the hash boundary
-					match = true; // so we don't increment our window values
-					break; // break out of the for loop
-				}
-			}			
+			// ck of l_min and r_min are valid ( as in are within the boundary range)
+			if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
+			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
+			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
+				l_min = current-1; // this is the new l_min
+				l_val = md5Hashes.get(l_min);
+			}
+
+			if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
+			// compare r_min to the new value that was just slided in , as in the end value
+			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
+				r_min = end; // this is the new l_min
+				r_val = md5Hashes.get(r_min);
+			}
+		
+		
+			/*-----------------------------------------------------------------------------
+				 if current is the minimum, we have a boundary
+			--------------------------------------------------------------------------------*/
+			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
+			{
+
+				int size = current - documentStart + 1; // this is the size of this block freq
+				if (blockFreq.get(size) == null) 
+					blockFreq.put(size,1); // simply insert the chunks in the document
+
+				else // increment it's integer count
+					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
+				counter++; // increment the block count
+				documentStart = current + 1;// set this as the beginning of the new boundary
+				start = current + 1;// set this as the beginning of the new boundary
+				current = start + localBoundary; // this is where we start finding the new local minima
+				end = current + localBoundary; // this is the new end of the hash boundary
+				match = true; // so we don't increment our window values
+			}
+		
+						
 			// go to the next window only if we didnt find a match
 			// because if we did find a boundary, we would automatically go to the next window
 			if (!match){
@@ -515,11 +534,11 @@ public class LocalMinima{
 	*/
 	private static void readBytes(int localBoundary) throws Exception{
 		// there are only 2 files
-		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+		// storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		// run2min(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 
-		// determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		// run2(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+		determineCutPoints_way2(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
+		run2(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
 	} // end of the function
 
 
@@ -744,27 +763,28 @@ public class LocalMinima{
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
+			// ck of l_min and r_min are valid ( as in are within the boundary range)
+			if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
 			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
 			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
 				l_min = current-1; // this is the new l_min
 				l_val = md5Hashes.get(l_min);
 			}
-				// ck of l_min and r_min are valid ( as in are within the boundary range)
-			else if (!(l_min >= start && l_min < current)){
-				l_min = findMin(start,current-1,md5Hashes); // find new min
-				l_val = md5Hashes.get(l_min);
-			}
+
+			if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
 			// compare r_min to the new value that was just slided in , as in the end value
 			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
 				r_min = end; // this is the new l_min
 				r_val = md5Hashes.get(r_min);
 			}
-			else if (!(r_min > current)){
-				r_min = findMin(current+1,end,md5Hashes);
-				r_val = md5Hashes.get(r_min);
-			}		
-					
-								
+		
 		
 			/*-----------------------------------------------------------------------------
 				 if current is the minimum, we have a boundary
@@ -826,26 +846,28 @@ public class LocalMinima{
 		----------------------------------------------------*/
 		while (end<md5Hashes.size()) // loop through till we hit the end of the array
 		{ 
+			// ck of l_min and r_min are valid ( as in are within the boundary range)
+			if (!(l_min >= start && l_min < current)){
+				l_min = findMin(start,current-1,md5Hashes); // find new min
+				l_val = md5Hashes.get(l_min);
+			}
 			// now check the new value that was just slides in ( we incremented current so we compare the value that was just slided in, as in current -1)
 			if (!(md5Hashes.get(l_min).compareTo(md5Hashes.get(current-1)) < 0)){
 				l_min = current-1; // this is the new l_min
 				l_val = md5Hashes.get(l_min);
 			}
-				// ck of l_min and r_min are valid ( as in are within the boundary range)
-			else if (!(l_min >= start && l_min < current)){
-				l_min = findMin(start,current-1,md5Hashes); // find new min
-				l_val = md5Hashes.get(l_min);
-			}
+
+			if (!(r_min > current)){
+				r_min = findMin(current+1,end,md5Hashes);
+				r_val = md5Hashes.get(r_min);
+			}		
+					
 			// compare r_min to the new value that was just slided in , as in the end value
 			if (!(md5Hashes.get(r_min).compareTo(md5Hashes.get(end)) < 0)){
 				r_min = end; // this is the new l_min
 				r_val = md5Hashes.get(r_min);
 			}
-			else if (!(r_min > current)){
-				r_min = findMin(current+1,end,md5Hashes);
-				r_val = md5Hashes.get(r_min);
-			}		
-					
+		
 
 			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
 			{
@@ -889,6 +911,7 @@ public class LocalMinima{
 		String original = builder.toString();
 		if (HashClass.is_string_match(original,table))
 			coverage+= array.length-documentStart; // this is how much we saved
+		numOfPieces++;
 	} // end of the method
 
 }

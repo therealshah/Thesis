@@ -28,7 +28,7 @@ public class WinnowingTiming{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	
-	private static String directory = "../thesis-datasets/gcc/";
+	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
 	//private static String directory = "../thesis-datasets/emacs/";
 
 	private static int window = 12;// window is size 12

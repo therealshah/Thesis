@@ -62,8 +62,9 @@ public class Winnowing{
 
 		//runPeriodic();
 		//runArchiveSet();
-		runOtherDataSets();
+		//runOtherDataSets();
 		//runMorphDataSet();
+		getBlockFrequency();
 
 	}
 	/*
@@ -302,22 +303,26 @@ public class Winnowing{
 
 	// this method basically will chop up the blocks and get their frequencies
 	private static void getBlockFrequency() throws Exception{
-		ArrayList<Long> md5Hashes = new ArrayList<Long>(); // store md5Hases
+		directory= "../../thesis-datasets/morph_file_100MB/";
+		ReadFile.readFile(directory,fileList); // read the two files
 		HashMap<Integer,Integer> blockFreq = new HashMap<Integer,Integer>(); // this stores the block in the map along there frequencies
-		System.out.println(fileList.get(0));
-		Path p = Paths.get(directory + fileList.get(0)); // get the path of the file, there is only one file
-		byte [] array = Files.readAllBytes(p); // read the file into a byte array
+		preliminaryStep(directory);
+		//System.out.println("Choping the document winnowing " + fileList.get(0));
+		//System.out.println(fileList.get(0));
 		int start = 0; // start of the sliding window
-		window = 12;
 		int end = start + window - 1; // ending boundary
-		int localBoundary = 500;
-		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
-		int totalBlocks = chopDocument(array,md5Hashes,localBoundary,blockFreq);
-		// now output the block sizes, along with there frequencies and probilities
-		for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
-			// output the block freq
-			double prob = (double)tuple.getValue() / (double)totalBlocks;
-			System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+		int local_boundary_array [] = {1000};
+		for (int localBoundary:local_boundary_array){
+			//System.out.println("Running Likelihood for " + localBoundary);
+			int totalBlocks = chopDocument(fileArray.get(0),hashed_File_List.get(0),localBoundary,blockFreq);
+			// now output the block sizes, along with there frequencies and probilities
+			for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
+				// output the block freq
+				double prob = (double)tuple.getValue() / (double)totalBlocks;
+				System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+			}
+
+			blockFreq.clear();
 		}
 	}
 
@@ -365,7 +370,6 @@ public class Winnowing{
 				}
 				if (blockFreq.get(size) == null){ // if not in there, then simply store it}
 					blockFreq.put(size,1); // simply insert the chunks in the document
-					//System.out.println("in here");
 				}
 				else // increment it's integer count
 					blockFreq.put(size,blockFreq.get(size)+1); // increment the count
