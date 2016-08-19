@@ -46,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -60,11 +60,11 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
+		runPeriodic();
 		//runArchiveSet();
 		//runOtherDataSets();
 		//runMorphDataSet();
-		getBlockFrequency();
+		//getBlockFrequency();
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -131,13 +131,13 @@ public class LocalMinima{
 				// now call the startCdc method
 				totalSize = new_file.length; // this is the length of the file
 				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
-
-				if (totalRuns % 10 == 0)
-					System.out.println(totalRuns);
 				totalRuns++;
-				//break;
+				if (totalRuns % 10 == 0){
+					System.out.println(totalRuns);
+					break;
+				}
 
-			}
+			}// end of if
 
 			// now output the results
 			System.out.println("File dir = " + dir_num + " totalRuns = " +totalRuns);
@@ -146,24 +146,12 @@ public class LocalMinima{
 				// avg out the outputs
 				double blockSize = block_size_list[index]/(double)totalRuns;
 				double ratio = ratio_size_list[index]/(double)totalRuns;
-				System.out.println(i + " " + blockSize + " " + ratio);
+				System.out.println(i + " " + block_size_list[index] + " " + blockSize + " " + ratio);
 				index++;
 		}
 
 			// now each index matches the corrosponding file
 		}	
-		// // run the dataset
-		// for (String dir : periodic_directory){
-		// 	directory = dir;
-		// 	ReadFile.readFile(directory,fileList); // read the two files
-		// 	System.out.println(fileList.get(0) + " " + fileList.get(1));
-		// 	preliminaryStep(directory);
-		//  	startCDC();
-		//  	fileList.clear(); // clear the list
-		//  	fileArray.clear(); // clear the array of files we have read in
-		//  	hashed_File_List.clear(); // clear all the hashed files we have
-		// }
-		
 	}
 	/*
 		-- This is a helper method run datasets such as emacs, gcc etc
@@ -499,15 +487,17 @@ public class LocalMinima{
 		{			
 			int localBoundary = i;
 			// System.out.print( i+" ");
-			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
-			run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
+			// storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			// run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
+			determineCutPoints_way2(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			run2(current_array,current_md5Hashes,localBoundary); // cal
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
 			if (ratio == 1){
 				System.out.println("We have found same file!!!!!!!");
 			}
-			//System.out.println(ratio);
+			System.out.println(totalSize + " " + blockSize + " " + numOfPieces);
 			// extra step, add the data back into the list
 			block_size_list[index] += blockSize;
 			ratio_size_list[index] += ratio;
@@ -871,6 +861,8 @@ public class LocalMinima{
 
 			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
 			{
+				int size = current - documentStart + 1;
+				System.out.println("in here  " + " " + size);
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}

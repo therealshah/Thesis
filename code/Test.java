@@ -31,12 +31,12 @@ public class Test{
 
 	public static void main(String [] args){
 
-		// ArrayList<Integer> md5Hashes = new ArrayList<Integer>(Arrays.asList(23,8,4,3,1,52,51,24,48,25,32,5,17,19,21,41,8,9));
-		// System.out.println("Way 1");
-		// storeChunks(md5Hashes,2);
-		// System.out.println("Way 2");
-		// determineCutPoints_way2(md5Hashes,2);
-		System.out.println("yolo");
+		ArrayList<Integer> md5Hashes = new ArrayList<Integer>(Arrays.asList(3,4,8,3,4,8,3,4,8,3,4,8));
+		System.out.println("Way 1");
+		storeChunks(md5Hashes,3);
+		System.out.println("Way 2");
+		determineCutPoints_way2(md5Hashes,3);
+		// System.out.println("yolo");
 	}
 
 
