@@ -29,7 +29,7 @@ import java.util.zip.*;
 */
 
 
-public class Winnowing{
+public class NewWin{
 
 	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
 
@@ -48,24 +48,25 @@ public class Winnowing{
 	private static double totalSize;
 	private static double coverage=0;
 	private static int numOfPieces=0;
+	private static int min_multiplier = 1;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 3000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
+
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
 	public static void main(String [] args) throws Exception
  	{
-
-		runPeriodic();
+		
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
-
 	}
 	/*
 		-- This is a helper method to run the periodic dataset basically
@@ -263,11 +264,17 @@ public class Winnowing{
 		-- This is a helper method run datasets such as emacs, gcc etc
 	*/
 	private static void runOtherDataSets() throws Exception{
-		System.out.println("Running winnowing " + directory);
+		int [] arr = {1};
 		ReadFile.readFile(directory,fileList); // read the two files
+		System.out.println("Running newwin " + directory);
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
-	 	startCDC();
+
+ 		for (int i :arr){
+ 			min_multiplier = i;
+			System.out.println("Running for min_multiplier = " + min_multiplier);
+		 	startCDC();
+	 }
 	}
 
 
@@ -435,7 +442,9 @@ public class Winnowing{
 		{
 			int localBoundary = i;
 			System.out.print( localBoundary+" ");
-			readBytes(localBoundary);
+			int minBoundary = min_multiplier* localBoundary;
+			readBytes(localBoundary,minBoundary);
+
 			// this is the block size per boundary
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
@@ -466,9 +475,10 @@ public class Winnowing{
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			int localBoundary = i;
+			int minBoundary = localBoundary;
 			// System.out.print( i+" ");
-			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
-			winnowing(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,localBoundary,minBoundary); // cut up the first file and store it
+			winnowing(current_array,current_md5Hashes,localBoundary,minBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -499,9 +509,9 @@ public class Winnowing{
 		First, we cut up the first document into chunks (using the CDC algorhtim) and store it
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
-	private static void readBytes(int localBoundary) throws Exception{
-		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary); // cut up the first file and store it
-		winnowing(fileArray.get(1),hashed_File_List.get(1),localBoundary); // call the method again, but on the second file only
+	private static void readBytes(int localBoundary,int minBoundary) throws Exception{
+		storeChunks(fileArray.get(0),hashed_File_List.get(0),localBoundary,minBoundary); // cut up the first file and store it
+		winnowing(fileArray.get(1),hashed_File_List.get(1),localBoundary,minBoundary); // call the method again, but on the second file only
 	} // end of the function
 
 
@@ -511,7 +521,7 @@ public class Winnowing{
 	*/
 	private static int findMin(int start,int end,ArrayList<Long> md5Hashes){
 		int min = start++; // set the min to the first element of the array and increment start
-		while (start <= end){
+		while (start <= end && end < md5Hashes.size()){
 			// if the new boundary is not greater than the current min (aka its the new min) set it to the new min
 			if (!(md5Hashes.get(start).compareTo(md5Hashes.get(min)) > 0))
 				min = start;
@@ -530,16 +540,23 @@ public class Winnowing{
 
 		-- We are simply finding the boundaries of the file using winnowing and simply storing them. Nothing more!
 	-------------------------------------------------------------------------------------------------------- */
-	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
+	private static void storeChunks(byte [] array, ArrayList<Long> md5Hashes, int localBoundary,int minBoundary){
 		int start = 0; // starting point
 		int current = localBoundary - 1;// compare all the values at and before this one
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		StringBuilder builder = new StringBuilder(); // this is used to store the original document content
 		int prevBoundary = -1; // used to keep track of the previous boundary
+		int slackBoundary = minBoundary/2;
 		// loop through until this current equals the end
 		while (current<md5Hashes.size())
 		{ 
+			// if it's less than the minimum, go to the next window
+			if (current - documentStart + 1 < minBoundary){
+				current++;
+				start++;
+				continue;
+			}
 			// if the prevBoundary is null or if it slided out, we will find the minimum within the range [start,current] and 
 			// set that as the boundary
 			if (prevBoundary == -1 || prevBoundary < start ){
@@ -562,16 +579,33 @@ public class Winnowing{
 				}
 				String original = builder.toString();
 				HashClass.put_hash(original,table); // iinsert the hash in the table
-				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-				// matches.put(hash,1); // simply insert the chunks in the document
-				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
+				builder.setLength(0);
+				// get the new minBoundary 
+				// documentStart = prevBoundary+1;
+				// int newStart = findMin(documentStart,documentStart + slackBoundary,md5Hashes);
+
+				// for (int j = documentStart; j < newStart; ++j){
+				// 	builder.append(array[j]);
+				// }
+				// original = builder.toString();
+				// HashClass.put_hash(original,table); // iinsert the hash in the table
+
+				// now update start, current and DS respecitviely
+				documentStart = prevBoundary + 1;
+
+				//documentStart = newStart;// set this as the beginning of the new boundary
+				start = documentStart;
+				current = start + localBoundary;
 				builder.setLength(0); // reset the stringbuilder for the next round
-				match = false;
 				//break; // break out of the for loop
 				// if the prev boundary is null or 
 			}
-			start++;
-			current++;						
+			if (!match){
+				start++;
+				current++;			
+			}
+			match = false;
+			
 		} // end of the while loop
 
 		// -------------------------------------------------------------------------------------------
@@ -603,16 +637,24 @@ public class Winnowing{
 		-- already seen this
 		-- we also keep track of a counter and misscounter, which we use to compute the ratio
 	-------------------------------------------------------------------------------------------------------- */
-	private static void winnowing(byte [] array, ArrayList<Long> md5Hashes, int localBoundary){
+	private static void winnowing(byte [] array, ArrayList<Long> md5Hashes, int localBoundary,int minBoundary){
 		int start = 0; // starting point
 		int current = localBoundary - 1;// this is the end of the boundary
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		StringBuilder builder = new StringBuilder(); // used to create the boundaries from the original file
 		int prevBoundary = -1; // used to keep track of the previous boundary
+		int slackBoundary = minBoundary/2;
+
 
 		while (current<md5Hashes.size())
 		{ 
+			// if it's less than the minimum, go to the next window
+			if (current - documentStart + 1 < minBoundary){
+				current++;
+				start++;
+				continue;
+			}
 			// if the prevBoundary is null or if it slided out, we will find the minimum within the range [start,current] and 
 			// set that as the boundary
 			if (prevBoundary == -1 || prevBoundary < start ){
@@ -636,16 +678,32 @@ public class Winnowing{
 				String original = builder.toString();
 				if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
 					coverage+= prevBoundary - documentStart + 1; // this is the amount of bytes we saved
-				// String hash = MD5Hash.hashString(builder.toString(),"MD5"); // hash this boundary
-				// if (matches.get(hash)!= null)
-				// 	coverage += prevBoundary - documentStart + 1; // we have saved this much of the document
-				documentStart = prevBoundary + 1;// set this as the beginning of the new boundary
-				builder.setLength(0); // reset the stringbuilder for the next round
-				match = false;
-				numOfPieces++; //  we got another boundary
+
+				// builder.setLength(0);
+				// documentStart = prevBoundary+1;
+				// int newStart = findMin(documentStart,documentStart + slackBoundary,md5Hashes);
+
+				// for (int j = documentStart; j < newStart; ++j){
+				// 	builder.append(array[j]);
+				// }
+				// original = builder.toString();
+				// if (HashClass.is_string_match(original,table)) // iinsert the hash in the table)
+				// 	coverage+= newStart - documentStart; // this is the amount of bytes we saved
+
+				// now update start, current and DS respecitviely
+				//documentStart = newStart;// set this as the beginning of the new boundary
+				documentStart = prevBoundary + 1;
+				start = documentStart;
+				current = start + localBoundary;
+				builder.setLength(0); // reset the stringbuilder for the next round	
+				numOfPieces+=1; //  we got 2 chunks
 			}
-			start++;
-			current++;																	
+			if (!match){
+				start++;
+				current++;	
+			}
+			match = false;
+																
 		} // end of the while loop
 
 		// -------------------------------------------------------------------------------------------

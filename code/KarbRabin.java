@@ -60,11 +60,11 @@ public class KarbRabin{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
+		runPeriodic();
 		//runArchiveSet();
 		//runOtherDataSets();
 		//runMorphDataSet();
-		getBlockFrequency();
+		//getBlockFrequency();
 	}
 
 	/*

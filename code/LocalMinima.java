@@ -132,10 +132,8 @@ public class LocalMinima{
 				totalSize = new_file.length; // this is the length of the file
 				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
 				totalRuns++;
-				if (totalRuns % 10 == 0){
+				if (totalRuns % 10 == 0)
 					System.out.println(totalRuns);
-					break;
-				}
 
 			}// end of if
 
@@ -146,7 +144,7 @@ public class LocalMinima{
 				// avg out the outputs
 				double blockSize = block_size_list[index]/(double)totalRuns;
 				double ratio = ratio_size_list[index]/(double)totalRuns;
-				System.out.println(i + " " + block_size_list[index] + " " + blockSize + " " + ratio);
+				System.out.println(i + " " + blockSize + " " + ratio);
 				index++;
 		}
 
@@ -221,6 +219,8 @@ public class LocalMinima{
 			hashed_File_List.add(md5Hashes);
 		}
 	}
+
+
 
 	// this method basically will chop up the blocks and get their frequencies
 	private static void getBlockFrequency() throws Exception{
@@ -462,7 +462,7 @@ public class LocalMinima{
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			System.out.println(blockSize + " " + ratio );
+			//System.out.println(blockSize + " " + ratio );
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			// matches.clear();
 			table.clear();
@@ -497,8 +497,8 @@ public class LocalMinima{
 			if (ratio == 1){
 				System.out.println("We have found same file!!!!!!!");
 			}
-			System.out.println(totalSize + " " + blockSize + " " + numOfPieces);
-			// extra step, add the data back into the list
+			//System.out.println(totalSize + " " + blockSize + " " + numOfPieces);
+			/// extra step, add the data back into the list
 			block_size_list[index] += blockSize;
 			ratio_size_list[index] += ratio;
 			//System.out.println(Arrays.toString(ratio_size_list));
@@ -862,7 +862,7 @@ public class LocalMinima{
 			if (md5Hashes.get(current).compareTo(Math.min(r_val,l_val)) < 0)
 			{
 				int size = current - documentStart + 1;
-				System.out.println("in here  " + " " + size);
+				//System.out.println("in here  " + " " + size);
 				for (int j = documentStart; j <= current;++j){
 					builder.append(array[j]); 
 				}
