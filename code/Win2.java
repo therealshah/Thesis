@@ -32,7 +32,7 @@ import java.util.zip.*;
 
 public class Win2{
 
-	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
+	private static HashSet<String> table = new HashSet<String>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 

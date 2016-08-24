@@ -31,7 +31,7 @@ public class LocalMinima{
 			
 
 	//private static HashMap<String,Integer> matches = new HashMap<String,Integer>();
-	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
+	private static HashSet<String> table = new HashSet<String>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
@@ -60,9 +60,9 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
+		runPeriodic();
 		//runArchiveSet();
-		runOtherDataSets();
+		//runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
@@ -72,8 +72,11 @@ public class LocalMinima{
 	*/
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running 2min Periodic");
+		startBoundary = 10;
+		endBoundary = 100;
+		increment = 5;
 		// this is alll the directories we will be running 
-		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
+		int arr []  = {10,20,30}; // this is the input number we will be running on
 		// this is the base of the two files
 		// these two are directories, we will concanate with the numbers to get the full dir name
 		String base_old_file = "../../thesis-datasets/input_";

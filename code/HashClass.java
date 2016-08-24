@@ -21,26 +21,28 @@ public class HashClass{
 			- table - hashtable that store hash value with associated strings
 
 	*/
-	public static void put_hash(String original,HashMap<String,ArrayList<String>> table){
+	public static void put_hash(String original,HashSet<String> table){
 		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundary. USe MD5 to reduce the probability of collision
-		if (table.get(hash) == null){
-			// insert it with a new arraylist
-			ArrayList<String> list = new ArrayList<String>(); // make a new list to hold the values
-			list.add(original); // insert the actual string in the builder
-			table.put(hash,list); // add the list in there
-		}
-		else{
-			// else there is a hash and only insert this string in the table only if it does't exist
-			ArrayList<String> list = table.get(hash);
-			// if this string already doesnt exist, insert it and incrememnt counter
-			if (!list.contains(original)){
-				list.add(original);
-				duplicate_counter++; 
-				if (list.size() > max_list_length)
-					max_list_length = list.size();
-				//System.out.println("Duplicate encountered");
-			}
-		}
+		// if (table.get(hash) == null){
+		// 	// insert it with a new arraylist
+		// 	ArrayList<String> list = new ArrayList<String>(); // make a new list to hold the values
+		// 	list.add(original); // insert the actual string in the builder
+		// 	table.put(hash,list); // add the list in there
+		// }
+		// else{
+		// 	// else there is a hash and only insert this string in the table only if it does't exist
+		// 	ArrayList<String> list = table.get(hash);
+		// 	// if this string already doesnt exist, insert it and incrememnt counter
+		// 	if (!list.contains(original)){
+		// 		list.add(original);
+		// 		duplicate_counter++; 
+		// 		if (list.size() > max_list_length)
+		// 			max_list_length = list.size();
+		// 		System.out.println("Duplicate encountered");
+		// 	}
+		// }
+
+		table.add(hash);
 	} // end of method
 
 	/*
@@ -50,16 +52,9 @@ public class HashClass{
 			- Original - originall string that we will be storing
 			- table - hashtable that store hash value with associated strings
 	*/
-	public static boolean is_string_match(String original,HashMap<String,ArrayList<String>> table){
+	public static boolean is_string_match(String original,HashSet<String> table){
 		String hash = MD5Hash.hashString(original,"MD5");	// hash this boundary
-
-		if (table.get(hash) != null){
-			ArrayList<String> list = table.get(hash);
-			// if this string already doesnt exist, insert it and incrememnt counter
-			return list.contains(original); // ck if original is in there
-		}
-		else
-			return false; // doesn't exist
+		return table.contains(hash);
 		
 	} //  end of metod
 

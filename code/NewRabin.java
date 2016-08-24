@@ -25,14 +25,14 @@ import java.util.zip.*;
 	Where d is the divisor and used to get the expected chunk lengths and q is the remainder that the value equals. Note we are comparing two files
 */
 
-public class KarbRabin{
+public class NewRabin{
 
 	private static HashSet<String> table = new HashSet<String>(); // store the actual strings
 	private static int duplicate_counter = 0; // count # of duplicates for the hash ( testing purposes)
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	//private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
+	private static String directory = "../../thesis-datasets/gcc/";	
 	//private static String directory = "../thesis/periodic/";
 
  	//private static String directory = "../thesis/nytimes/";
@@ -46,10 +46,10 @@ public class KarbRabin{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
-
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
+	private static long divisor2;
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -60,9 +60,9 @@ public class KarbRabin{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
@@ -73,9 +73,6 @@ public class KarbRabin{
 	*/
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running KR Periodic");
-		startBoundary = 10;
-		endBoundary = 100;
-		increment = 5;
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -415,11 +412,13 @@ public class KarbRabin{
 	*/
 	private static void startCDC() throws Exception{
 		long remainder = 7; // this is the remainder that we will be comparing with
+		long remainder2 = 0;
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			long divisor = i;
+			divisor2 = 2*i + 3;
 			System.out.print( i+" ");
-			runBytes(divisor,remainder); // run the karb rabin algorithm
+			runBytes(divisor,remainder,remainder2); // run the karb rabin algorithm
 			// this is the block size per boundary
 			totalSize = fileArray.get(1).length; // note we only care about the size of the second file since that's the file we are measuring
 			double blockSize = (double)totalSize/(double)numOfPieces;
@@ -444,13 +443,14 @@ public class KarbRabin{
 	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] current_array,byte[] previous_array,
 	 ArrayList<Long> current_md5Hashes,ArrayList<Long> previous_md5Hashes ) throws Exception{
 		long remainder = 7; // this is the remainder that we will be comparing with
+		long remainder2 = 2;
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			long divisor = i;
 			// System.out.print( i+" ");
-			storeChunks(previous_array,previous_md5Hashes,divisor,remainder); // cut up the first file and store it
-			runKarbRabin(current_array,current_md5Hashes,divisor,remainder); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,divisor,remainder,remainder2); // cut up the first file and store it
+			runKarbRabin(current_array,current_md5Hashes,divisor,remainder,remainder2); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -479,9 +479,9 @@ public class KarbRabin{
 		First, we cut up the first document into chunks (using the CDC algorhtim) and store it
 		Then we cut up the second document (usually a different version of the same document) and see how many chunks match
 	*/
-	private static void runBytes(long divisor,long remainder) throws Exception{
-		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor,remainder); // cut up the first file and store it
-		runKarbRabin(fileArray.get(1),hashed_File_List.get(1),divisor,remainder); // call the method again, but on the second file only
+	private static void runBytes(long divisor,long remainder,long remainder2) throws Exception{
+		storeChunks(fileArray.get(0),hashed_File_List.get(0),divisor,remainder,remainder2); // cut up the first file and store it
+		runKarbRabin(fileArray.get(1),hashed_File_List.get(1),divisor,remainder,remainder2); // call the method again, but on the second file only
 	} // end of the function
 
 
@@ -493,19 +493,19 @@ public class KarbRabin{
 
 		-- We are simply finding the boundaries of the file using karbRabin and simply storing them. Nothing more!
 	-------------------------------------------------------------------------------------------------------- */
-	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes,long divisor,long remainder){
+	private static void storeChunks(byte[] array, ArrayList<Long> md5Hashes,long divisor,long remainder,long remainder2){
 
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		StringBuilder builder = new StringBuilder();
 		// loop through all the values in the document
-		for (int i = 0; i < md5Hashes.size();++i)
+		for (int i = 1; i < md5Hashes.size() - 1;++i)
 		{ 	
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
 			------------------------------------------------------------------*/ 
-			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
+			if ((md5Hashes.get(i-1)+md5Hashes.get(i) + md5Hashes.get(i+1))%divisor == remainder) // ck if this equals the mod value
 			{
 				// Hash all the values in the range (documentStart,current(i))
 				// Remember we only want to hash the original VALUES from the array that contains the original
@@ -549,17 +549,17 @@ public class KarbRabin{
 		-- We will find the boundaries using mod values and once they equal the mod value we have stored
 		-- We will hash everything in that hash boundary and store it
 	-------------------------------------------------------------------------------------------------------- */
-	private static void runKarbRabin(byte[] array, ArrayList<Long> md5Hashes,long divisor, long remainder){
+	private static void runKarbRabin(byte[] array, ArrayList<Long> md5Hashes,long divisor, long remainder,long remainder2){
 		int documentStart = 0; // used to keep track of where the boundaries are
 		boolean match = false; // used to ck if we encountered a match
 		StringBuilder builder = new StringBuilder(); // used to hold the bytes
-		for (int i = 0; i < md5Hashes.size();++i) // loop through each of the values
+		for (int i = 1; i < md5Hashes.size()-1;++i) // loop through each of the values
 		{ 	
 			/*-----------------------------------------------------------------
 				- If the mod of this equals the modvalue we defined, then 
 				- this is a boundary
 			------------------------------------------------------------------*/ 
-			if (md5Hashes.get(i)%divisor == remainder) // ck if this equals the mod value
+			if ((md5Hashes.get(i-1)+md5Hashes.get(i)+md5Hashes.get(i+1))%divisor == remainder) // ck if this equals the mod value
 			{
 				// Hash all the values in the range (documentStart,current(i))
 				// Remember we only want to hash the original VALUES from the array that contains the original

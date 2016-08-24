@@ -35,12 +35,12 @@ import java.util.zip.*;
 
 
 public class Tddd{
-	private static HashMap<String,ArrayList<String>> table = new HashMap<String,ArrayList<String>>(); // store the actual strings
+	private static HashSet<String> table = new HashSet<String>(); // store the actual strings
 
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
-  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
+  	private static String directory = "../../thesis-datasets/gcc/";
 
 
 	private static int window=12;// window size will be fixed around 12
@@ -51,9 +51,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 20; // start running the algo using this as the starting param
+	private static int startBoundary = 10; // start running the algo using this as the starting param
 	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int increment = 5; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -78,9 +78,9 @@ public class Tddd{
  					min_multiplier=i;
  					max_multiplier = j;
  					//getBlockFrequency();
- 					runOtherDataSets();
+ 					//runOtherDataSets();
  					//runArchiveSet();
- 					//runPeriodic();
+ 					runPeriodic();
  					//runMorphDataSet();
 
  				}
@@ -96,8 +96,11 @@ public class Tddd{
 	*/
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running TDDD Periodic");
+		startBoundary = 10;
+		endBoundary = 100;
+		increment = 5;
 		// this is alll the directories we will be running 
-		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
+		int arr []  = {10,20,30}; // this is the input number we will be running on
 		// this is the base of the two files
 		// these two are directories, we will concanate with the numbers to get the full dir name
 		String base_old_file = "../../thesis-datasets/input_";
@@ -705,7 +708,7 @@ public class Tddd{
 			else if (md5Hashes.get(i)%divisor2 == remainder){ //  check if this is the backup point
 				backUpBreakPoint = i; // this is the backup breakpoint
 			}
-			else if (md5Hashes.get(i)%divisor2 == remainder){
+			else if (md5Hashes.get(i)%divisor3 == remainder){
 				secondBackUpBreakPoint = i; // set the second backup point
 			}
 			if ((i - documentStart + 1) >= maxBoundary ) { // we have reached the maximum
