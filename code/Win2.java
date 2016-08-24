@@ -37,7 +37,7 @@ public class Win2{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis/gcc/";
-	private static String directory = "../../thesis-datasets/gcc/";
+  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
 	private static double coverage=0;
@@ -47,9 +47,9 @@ public class Win2{
 	private static int multiplier;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 20; // start running the algo using this as the starting param
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 

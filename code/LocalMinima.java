@@ -36,7 +36,7 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-  	private static String directory = "../../thesis-datasets/emacs/";
+  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
 
 	//private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 	// get the ratio of the coverage over the total size
@@ -46,7 +46,7 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int startBoundary = 20; // start running the algo using this as the starting param
 	private static int endBoundary = 100; // go all the way upto here
 	private static int increment = 10; // increment in these intervals
 
@@ -60,9 +60,9 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
@@ -462,7 +462,7 @@ public class LocalMinima{
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
-			//System.out.println(blockSize + " " + ratio );
+			System.out.println(blockSize + " " + ratio );
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			// matches.clear();
 			table.clear();

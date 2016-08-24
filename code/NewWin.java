@@ -38,7 +38,7 @@ public class NewWin{
 
 	//private static String directory = "../thesis/gcc/";
 	// /private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/gcc/";	
+  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
 
 	//private static String directory = "../thesis/emacs/";
 
@@ -51,9 +51,9 @@ public class NewWin{
 	private static int min_multiplier = 1;
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 3000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 20; // start running the algo using this as the starting param
+	private static int endBoundary = 100; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
@@ -475,7 +475,7 @@ public class NewWin{
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
 		{			
 			int localBoundary = i;
-			int minBoundary = localBoundary;
+			int minBoundary = localBoundary/2;
 			// System.out.print( i+" ");
 			storeChunks(previous_array,previous_md5Hashes,localBoundary,minBoundary); // cut up the first file and store it
 			winnowing(current_array,current_md5Hashes,localBoundary,minBoundary); // call the method again, but on the second file only
@@ -551,12 +551,12 @@ public class NewWin{
 		// loop through until this current equals the end
 		while (current<md5Hashes.size())
 		{ 
-			// if it's less than the minimum, go to the next window
-			if (current - documentStart + 1 < minBoundary){
-				current++;
-				start++;
-				continue;
-			}
+			// // if it's less than the minimum, go to the next window
+			// if (current - documentStart + 1 < minBoundary){
+			// 	current++;
+			// 	start++;
+			// 	continue;
+			// }
 			// if the prevBoundary is null or if it slided out, we will find the minimum within the range [start,current] and 
 			// set that as the boundary
 			if (prevBoundary == -1 || prevBoundary < start ){
@@ -568,6 +568,13 @@ public class NewWin{
 			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) > 0)){
 				prevBoundary = current;
 				match = true;
+			}
+
+			// if it's less than the minimum, go to the next window
+			if (prevBoundary - documentStart + 1 < minBoundary){
+				current++;
+				start++;
+				continue;
 			}
 			// we have found a boundary, so just hash it 
 			if (match){
@@ -661,11 +668,18 @@ public class NewWin{
 				prevBoundary = findMin(start,current,md5Hashes); // get the min within this window
 				match = true;
 			}
+	
 			// else we have a valid prev boundary and compare that value with the new one we slided in (aka current)
 			// if the new one is less than OR equal (AKA its not greater than the prevBoundary) to the prevBoundary, this new one will become the previous boundary
 			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) > 0)){
 				prevBoundary = current;
 				match = true;
+			}
+			// if it's less than the minimum, go to the next window
+			if (prevBoundary - documentStart + 1 < minBoundary){
+				current++;
+				start++;
+				continue;
 			}
 			// we have found a boundary, so just hash it 
 			if (match){

@@ -40,7 +40,8 @@ public class Tddd{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<String> folderList = new ArrayList<String>();
-	private static String directory = "../../thesis-datasets/gcc/";	
+  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
+
 
 	private static int window=12;// window size will be fixed around 12
 
@@ -50,9 +51,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int startBoundary = 20; // start running the algo using this as the starting param
 	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 5; // increment in these intervals
+	private static int increment = 10; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -77,9 +78,9 @@ public class Tddd{
  					min_multiplier=i;
  					max_multiplier = j;
  					//getBlockFrequency();
- 					//runOtherDataSets();
+ 					runOtherDataSets();
  					//runArchiveSet();
- 					runPeriodic();
+ 					//runPeriodic();
  					//runMorphDataSet();
 
  				}
