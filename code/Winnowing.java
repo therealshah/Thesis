@@ -50,9 +50,9 @@ public class Winnowing{
 	private static int numOfPieces=0;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 100; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 1000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -60,11 +60,11 @@ public class Winnowing{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
 		//runOtherDataSets();
 		//runMorphDataSet();
-		//getBlockFrequency();
+		getBlockFrequency();
 
 	}
 	/*
@@ -279,7 +279,7 @@ public class Winnowing{
 	*/
 	private static void runMorphDataSet() throws Exception{
 
-		String morph_directory = "../../thesis-datasets/morph/"; // directory where all the morph code is stored
+		String morph_directory = "../../thesis-datasets/large_morph/"; // directory where all the morph code is stored
 		File d = new File(morph_directory);
 	    // get all the files from a directory
 	    File[] fList = d.listFiles();
@@ -322,7 +322,10 @@ public class Winnowing{
 			for (Map.Entry<Integer,Integer> tuple: blockFreq.entrySet()){
 				// output the block freq
 				double prob = (double)tuple.getValue() / (double)totalBlocks;
-				System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+				// System.out.println(tuple.getKey() + " " + tuple.getValue() + " " + prob);
+				for (int i = 0; i < tuple.getValue(); ++i)
+					System.out.println(tuple.getKey()); // printing this value the amount of times it appears
+
 			}
 
 			blockFreq.clear();
