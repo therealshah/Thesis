@@ -51,23 +51,25 @@ public class Backup2min{
 	private static int startBoundary = 100; // start running the algo using this as the starting param
 	private static int endBoundary = 1000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
-	private static int multiplier;
+	private static int multiplier = 4;
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
 
 	public static void main(String [] args) throws Exception{
 
-		// int [] arr = {2,4,6}; // these are the multipliers we will use
+	int [] arr = {2,4,6}; // these are the multipliers we will use
+
  	// 	for (int m : arr){
  	// 		multiplier = m;
 		// 	System.out.println("multiplier = " + multiplier);
-		// 	runArchiveSet(); 
+		// 	//runArchiveSet(); 
+		// 	runOtherDataSets();
+		// 	fileArray.clear();
+		// 	hashed_File_List.clear();
 			
 		// }
-
-		multiplier = 4;
-		runOtherDataSets();
+		runArchiveSet();
 	}
 
 	/*
@@ -75,7 +77,7 @@ public class Backup2min{
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running winnowing Periodic");
+		System.out.println("Running backup2min Periodic");
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -157,15 +159,14 @@ public class Backup2min{
 		}	
 		
 	}//end of methid
-
-			/*
+	/*
 		- This method is used has a helper method to run the algo for the archive dataset
 		- Note the archive set has multiple directories ( one for each url )
 		- So Read all of the directories in first and for each directory run the code
 	*/
 	private static void runArchiveSet() throws Exception{
 
-		System.out.println("Running winnowing archive");
+		System.out.println("Running backup2min archive");
 		directory = "../../thesis-datasets/datasets2/";
 		File file = new File(directory);
 		String[] directory_list = file.list(new FilenameFilter() {
@@ -262,6 +263,7 @@ public class Backup2min{
 			index++;
 		}
 	}
+
 
 	/*
 		-- This is a helper method run datasets such as emacs, gcc etc
@@ -451,7 +453,6 @@ public class Backup2min{
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			table.clear();
 			coverage = 0;
-			totalSize = 0;
 			numOfPieces = 0;		
 			HashClass.duplicate_counter = 0;
 			HashClass.max_list_length = 0;	
