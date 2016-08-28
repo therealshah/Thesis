@@ -51,9 +51,9 @@ public class Tddd{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
-	private static int increment = 50; // increment in these intervals
+	private static int startBoundary = 10; // start running the algo using this as the starting param
+	private static int endBoundary = 200; // go all the way upto here
+	private static int increment = 10; // increment in these intervals
 	private static int min_multiplier = 2;
 	private static int max_multiplier = 8; // two multipliers for min and max boundaries
 
@@ -76,11 +76,11 @@ public class Tddd{
  					//System.out.println("Min = " + i + " Max = " + j);
  					min_multiplier=i;
  					max_multiplier = j;
- 					getBlockFrequency();
+ 					//getBlockFrequency();
  					//runOtherDataSets();
  					//runArchiveSet();
  					//runPeriodic();
- 					//runMorphDataSet();
+ 					runMorphDataSet();
 
  				}
  			}
@@ -196,7 +196,7 @@ public class Tddd{
 	*/
 	private static void runMorphDataSet() throws Exception{
 
-		String morph_directory = "../../thesis-datasets/large_morph/"; // directory where all the morph code is stored
+		String morph_directory = "../../thesis-datasets/large_morph_60MB/"; // directory where all the morph code is stored
 		File d = new File(morph_directory);
 	    // get all the files from a directory
 	    File[] fList = d.listFiles();
