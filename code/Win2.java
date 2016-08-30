@@ -71,9 +71,10 @@ public class Win2{
 		// 	hashed_File_List.clear();
 			
 		// }
-		runArchiveSet();
+		//runArchiveSet();
 		// multiplier = 4;
 		// runOtherDataSets();
+		runPeriodic();
 	}
 
 	/*
@@ -81,7 +82,10 @@ public class Win2{
 
 	*/
 	private static void runPeriodic() throws Exception {
-		System.out.println("Running winnowing Periodic");
+		System.out.println("Running win2 Periodic");
+		startBoundary = 10;
+		endBoundary = 100;
+		increment = 5;
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files

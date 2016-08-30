@@ -69,7 +69,7 @@ public class Backup2min{
 		// 	hashed_File_List.clear();
 			
 		// }
-		runArchiveSet();
+		runPeriodic();
 	}
 
 	/*
@@ -78,6 +78,9 @@ public class Backup2min{
 	*/
 	private static void runPeriodic() throws Exception {
 		System.out.println("Running backup2min Periodic");
+		startBoundary = 10;
+		endBoundary = 100;
+		increment = 5;
 		// this is alll the directories we will be running 
 		int arr []  = {10,15,20,25,30}; // this is the input number we will be running on
 		// this is the base of the two files
@@ -137,10 +140,13 @@ public class Backup2min{
 				// now call the startCdc method
 				totalSize = new_file.length; // this is the length of the file
 				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
-
-				if (totalRuns % 10 == 0)
-					System.out.println(totalRuns);
 				totalRuns++;
+				if (totalRuns % 10 == 0){
+
+					System.out.println(totalRuns);
+					//break;
+				}
+		
 
 			}
 
@@ -159,6 +165,7 @@ public class Backup2min{
 		}	
 		
 	}//end of methid
+
 	/*
 		- This method is used has a helper method to run the algo for the archive dataset
 		- Note the archive set has multiple directories ( one for each url )
@@ -431,17 +438,19 @@ public class Backup2min{
 		- Overloaded method just for the internet archive dataset
 		- The first two params hold the block size and ratioSize respectively (for all the runnings)
 		- The last set of params are the actual file in byte and the hashed versions of the file we will be running the code against
+		- current_ -- are the lists that contain the most recent file version
+		- previous_ -- are the listrs that contain the previous versions
 	*/
-	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] array1,byte[] array2,
-	 ArrayList<Long> md5Hashes1,ArrayList<Long> md5Hashes2 ) throws Exception{
+	private static void startCDC(double [] block_size_list, double [] ratio_size_list,byte[] current_array,byte[] previous_array,
+	 ArrayList<Long> current_md5Hashes,ArrayList<Long> previous_md5Hashes ) throws Exception{
 		int index = 0; // used to traverse the two lists
 		for (int i = startBoundary;i<=endBoundary;i+=increment)
-		{		
-			maxBoundary = 4*i;
+		{			
 			int localBoundary = i;
+			maxBoundary = multiplier*i;
 			// System.out.print( i+" ");
-			storeChunks(array1,md5Hashes1,localBoundary); // cut up the first file and store it
-			run2min(array2,md5Hashes2,localBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
@@ -453,11 +462,13 @@ public class Backup2min{
 			// clear the hashTable, and counters so we can reset the values for the next round of boundaries
 			table.clear();
 			coverage = 0;
-			numOfPieces = 0;		
+			numOfPieces = 0; 
 			HashClass.duplicate_counter = 0;
-			HashClass.max_list_length = 0;	
+			HashClass.max_list_length = 0;		
 		}
 	}
+
+
 
 
 

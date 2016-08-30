@@ -60,10 +60,10 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		//runPeriodic();
+		runPeriodic();
 		//runArchiveSet();
 		//runOtherDataSets();
-		runMorphDataSet();
+		//runMorphDataSet();
 		//getBlockFrequency();
 	}
 	/*
@@ -135,8 +135,10 @@ public class LocalMinima{
 				totalSize = new_file.length; // this is the length of the file
 				startCDC(block_size_list,ratio_size_list,new_file,old_file,new_file_hashes,old_file_hashes);
 				totalRuns++;
-				if (totalRuns % 10 == 0)
+				if (totalRuns % 10 == 0){
 					System.out.println(totalRuns);
+					break;
+				}
 
 			}// end of if
 
@@ -496,11 +498,11 @@ public class LocalMinima{
 		{			
 			int localBoundary = i;
 			// System.out.print( i+" ");
-			// storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
-			// run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
+			storeChunks(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			run2min(current_array,current_md5Hashes,localBoundary); // call the method again, but on the second file only
 			// this is the block size per boundary
-			determineCutPoints_way2(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
-			run2(current_array,current_md5Hashes,localBoundary); // cal
+			// determineCutPoints_way2(previous_array,previous_md5Hashes,localBoundary); // cut up the first file and store it
+			// run2(current_array,current_md5Hashes,localBoundary); // cal
 			double blockSize = (double)totalSize/(double)numOfPieces;
 			double ratio = (double)coverage/(double)totalSize;
 			if (ratio == 1){
