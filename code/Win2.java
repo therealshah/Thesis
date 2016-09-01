@@ -74,7 +74,38 @@ public class Win2{
 		//runArchiveSet();
 		// multiplier = 4;
 		// runOtherDataSets();
-		runPeriodic();
+		runMorphDataSet();
+	}
+		/*
+		-- This is a helper methid to run the morph files
+	*/
+	private static void runMorphDataSet() throws Exception{
+
+		String morph_directory = "../../thesis-datasets/morph/"; // directory where all the morph code is stored
+		File d = new File(morph_directory);
+		startBoundary=100;
+		endBoundary=1000;
+		increment=50;
+	    // get all the files from a directory
+	    File[] fList = d.listFiles();
+	    List<String> dir_list = new ArrayList<String>();
+	    for (File file : fList) {
+	        if (file.isDirectory()) {
+	            dir_list.add(file.getName());
+	        }
+	    }
+	    for (String dir : dir_list){
+	    	directory = morph_directory + dir + "/";
+	    	System.out.println("Running win2 " + directory);
+			ReadFile.readFile(directory,fileList); // read the two files
+			System.out.println(fileList.get(0) + " " + fileList.get(1));
+			preliminaryStep(directory);
+		 	startCDC();
+		 	fileList.clear();
+		 	fileArray.clear();
+		 	hashed_File_List.clear();
+	    }
+
 	}
 
 	/*
