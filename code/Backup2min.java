@@ -51,7 +51,7 @@ public class Backup2min{
 	private static int startBoundary = 100; // start running the algo using this as the starting param
 	private static int endBoundary = 1000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
-	private static int multiplier = 4;
+	private static int multiplier = 6;
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
 
@@ -69,8 +69,8 @@ public class Backup2min{
 		// 	hashed_File_List.clear();
 			
 		// }
-		runMorphDataSet();
-		//runPeriodic();
+		//runMorphDataSet();
+		runPeriodic();
 	}
 
 	/*
@@ -549,7 +549,7 @@ public class Backup2min{
 					// <0 if less than
 					// 0 if equal
 				// 	// break if this isnt the smallest one
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)){
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) {
 					if (++missCounter >1) // remember we are allowed to miss once ( AKA second smallest)
 						break;
 				}
@@ -663,7 +663,7 @@ This method:
 			{							
 				if (i==current) // we don't want to compare with ourselves
 					++i;	
-				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) < 0)) {
+				if (!(md5Hashes.get(current).compareTo(md5Hashes.get(i)) <= 0)) {
 					if (++missCounter > 1) // inrease the missCounter
 						break; // we will break if the value at the current index is not a second minimum
 				}
