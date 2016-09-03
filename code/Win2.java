@@ -44,7 +44,7 @@ public class Win2{
 	private static int numOfPieces=0;
 	private static int window = 12; 
 	private static int maxBoundary;
-	private static int multiplier = 6;
+	private static int multiplier = 4;
 
 	// variables for the boundary size
 	private static int startBoundary = 100; // start running the algo using this as the starting param
@@ -75,7 +75,8 @@ public class Win2{
 		// multiplier = 4;
 		// runOtherDataSets();
 		//runMorphDataSet();
-		runPeriodic();
+		runOtherDataSets();
+		//runPeriodic();
 	}
 		/*
 		-- This is a helper methid to run the morph files
