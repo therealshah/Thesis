@@ -28,8 +28,8 @@ public class LocalMinimaTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 
-	private static String directory = "../../thesis-datasets/morph_file_100Mb/";
-	//private static String directory = "../thesis-datasets/emacs/";
+	//private static String directory = "../../thesis-datasets/morph_file_100Mb/";
+	private static String directory = "../../thesis-datasets/gcc/";
 
 	private static int window = 12;// window is size 12
 	private static int numOfPieces = 0;
@@ -80,6 +80,7 @@ public class LocalMinimaTiming{
 		int start = 0; // start of the sliding window
 		int end = start + window - 1; // ending boundary
 		totalSize = array.length;
+		System.out.println(totalSize);
 		HashDocument.hashDocument(array,md5Hashes,start,end); // this hashes the entire document using the window and stores itto md5hashes array
 	}
 
