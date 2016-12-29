@@ -71,12 +71,12 @@ def file_filter(path):
 
 
 
-directory = 'datasets2/'
+directory = '../../thesis-datasets/datasets2/'
 sub_dirs =  next(os.walk(directory))[1] # get all the directories for this file
 for folder in sub_dirs:
 	check_directories(directory + folder + '/')
 	remove_corrupted_files(directory + folder + '/')
-	file_filter(directory + folder + '/') # FILTER all the same versions
+	#file_filter(directory + folder + '/') # FILTER all the same versions
 	#break
 
 print 'total # directories = ',dir_count

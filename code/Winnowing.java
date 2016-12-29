@@ -50,9 +50,9 @@ public class Winnowing{
 	private static int numOfPieces=0;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 3500; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -61,9 +61,9 @@ public class Winnowing{
  	{
 
 		//runPeriodic();
-		//runArchiveSet();
+		runArchiveSet();
 		//runOtherDataSets();
-		runMorphDataSet();
+		//runMorphDataSet();
 		//getBlockFrequency();
 
 	}

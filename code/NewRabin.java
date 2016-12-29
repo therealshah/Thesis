@@ -47,7 +47,7 @@ public class NewRabin{
 
 	// variables for the boundary size
 	private static int startBoundary = 100; // start running the algo using this as the starting param
-	private static int endBoundary = 1000; // go all the way upto here
+	private static int endBoundary = 2000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
 	private static long divisor2;
 
@@ -61,8 +61,8 @@ public class NewRabin{
  	{
 
 		//runPeriodic();
-		//runArchiveSet();
-		runOtherDataSets();
+		runArchiveSet();
+		//runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
