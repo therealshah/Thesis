@@ -28,7 +28,7 @@ public class WinnowingTiming{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	
-	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
+	private static String directory = "../../thesis-datasets/morph_file_100Mb/";
 	//private static String directory = "../thesis-datasets/emacs/";
 
 	private static int window = 12;// window is size 12
@@ -37,7 +37,7 @@ public class WinnowingTiming{
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 	private static int totalSize;
 	private static int startBoundary = 100;
-	private static int endBoundary = 1000;
+	private static int endBoundary = 2000;
 	private static int increment = 50;
 	private static int arraySize = (endBoundary/increment) - 1; // number of elements
 	private static long []  timeArray = new long[arraySize]; // default values are 0

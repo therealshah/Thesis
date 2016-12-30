@@ -28,7 +28,7 @@ public class TdddTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../../thesis-datasets/gcc/";
 	//private static String directory = "../thesis-datasets/emacs/";
-	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
+	private static String directory = "../../thesis-datasets/morph_file_100Mb/";
 	private static int window = 12;// window size will be fixed around 12
 	private static int numOfPieces=0;  // used to calculate block size
 

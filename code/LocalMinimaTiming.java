@@ -28,8 +28,8 @@ public class LocalMinimaTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 
-	//private static String directory = "../../thesis-datasets/morph_file_100Mb/";
-	private static String directory = "../../thesis-datasets/gcc/";
+	private static String directory = "../../thesis-datasets/morph_file_100Mb/";
+	//private static String directory = "../../thesis-datasets/gcc/";
 
 	private static int window = 12;// window is size 12
 	private static int numOfPieces = 0;

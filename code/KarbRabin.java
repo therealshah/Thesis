@@ -28,13 +28,14 @@ import java.util.zip.*;
 public class KarbRabin{
 
 	private static HashSet<String> table = new HashSet<String>(); // store the actual strings
-	private static int duplicate_counter = 0; // count # of duplicates for the hash ( testing purposes)
+	private static int duplicate_counter = 0; 
+	//count # of duplicates for the hash ( testing purposes)
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	//private static String directory = "../thesis/emacs/";
-	private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
+	//private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 	//private static String directory = "../thesis/periodic/";
-
+	private static String directory = "../../thesis-datasets/emacs/";	
  	//private static String directory = "../thesis/nytimes/";
 
 	private static int window = 12;// window size will be fixed around 12
@@ -46,7 +47,7 @@ public class KarbRabin{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int startBoundary = 900; // start running the algo using this as the starting param
 	private static int endBoundary = 2000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
 
@@ -61,8 +62,8 @@ public class KarbRabin{
  	{
 
 		//runPeriodic();
-		runArchiveSet();
-		//runOtherDataSets();
+		//runArchiveSet();
+		runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}

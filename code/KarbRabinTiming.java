@@ -27,7 +27,7 @@ public class KarbRabinTiming{
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	private static ArrayList<Long> md5Hashes = new ArrayList<Long>(); // used to hold the md5Hashes
 
-	private static String directory = "../../thesis-datasets/morph_file_20Mb/";
+	private static String directory = "../../thesis-datasets/morph_file_100Mb/";
 	//private static String directory = "../thesis-datasets/emacs/";
 	
 	private static int window =12 ;// window size will be fixed around 12
@@ -46,9 +46,10 @@ public class KarbRabinTiming{
 	// made a different method so i can call the timing for all the CDC algos with a single java helper class method
 	public static void main(String [] args) throws Exception{
 
-		System.out.println("========== Running KR + " + directory + " runs " + runs);
+		
 		//runArchiveSet();
 		preliminaryStep(); // this is to set everythinh up for the methods
+		System.out.println("========== Running KR + " + fileList.get(0) + " runs " + runs);
 		// run the method for runs amount of time and avg the results
 		for (int i = 0; i < runs; ++i){
 			index = 0; // set the index to 0 so we can add the correct values in to correct blocksizes
