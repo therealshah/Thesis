@@ -36,8 +36,8 @@ public class LocalMinima{
 	// used to store the files in the list
 	private static ArrayList<String> fileList = new ArrayList<String>(); 
 	//private static String directory = "../thesis-datasets/gcc/";
-  	private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
-
+  	// private static String directory = "../../thesis-datasets/large_periodic_.98_.70/";
+	private static String directory = "../../thesis-datasets/morph/morph_.999_.10/";	
 	//private static String directory = "../../thesis-datasets/morph/morph_.95_.10/";	
 	// get the ratio of the coverage over the total size
 	private static double totalSize=0;
@@ -46,9 +46,9 @@ public class LocalMinima{
 	private static int window = 12;
 
 	// variables for the boundary size
-	private static int startBoundary = 10; // start running the algo using this as the starting param
-	private static int endBoundary = 200; // go all the way upto here
-	private static int increment = 10; // increment in these intervals
+	private static int startBoundary = 900; // start running the algo using this as the starting param
+	private static int endBoundary = 1500; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static int document_date_selection = 2; // 1 - last week, 2 - for last month, 3 - for last year
 
@@ -60,9 +60,9 @@ public class LocalMinima{
 	public static void main(String [] args) throws Exception
  	{
 
-		runPeriodic();
+		//runPeriodic();
 		//runArchiveSet();
-		//runOtherDataSets();
+		runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
