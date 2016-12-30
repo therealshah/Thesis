@@ -47,7 +47,7 @@ public class KarbRabin{
 	private static int numOfPieces=0;  // used to calculate block size
 
 	// variables for the boundary size
-	private static int startBoundary = 1000; // start running the algo using this as the starting param
+	private static int startBoundary = 900; // start running the algo using this as the starting param
 	private static int endBoundary = 3000; // go all the way upto here
 	private static int increment = 50; // increment in these intervals
 
@@ -62,8 +62,8 @@ public class KarbRabin{
  	{
 
 		//runPeriodic();
-		//runArchiveSet();
-		runOtherDataSets();
+		runArchiveSet();
+		//runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 	}
