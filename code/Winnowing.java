@@ -61,8 +61,8 @@ public class Winnowing{
  	{
 
 		//runPeriodic();
-		//runArchiveSet();
-		runOtherDataSets();
+		runArchiveSet();
+		//runOtherDataSets();
 		//runMorphDataSet();
 		//getBlockFrequency();
 
