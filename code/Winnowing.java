@@ -50,9 +50,9 @@ public class Winnowing{
 	private static int numOfPieces=0;
 
 	// variables for the boundary size
-	private static int startBoundary = 5000; // start running the algo using this as the starting param
-	private static int endBoundary = 15000; // go all the way upto here
-	private static int increment = 500; // increment in these intervals
+	private static int startBoundary = 100; // start running the algo using this as the starting param
+	private static int endBoundary = 5000; // go all the way upto here
+	private static int increment = 50; // increment in these intervals
 
 	private static ArrayList< byte [] > fileArray = new ArrayList<byte[]>(); // holds both the file arrays
 	private static ArrayList<ArrayList<Long>> hashed_File_List = new ArrayList<ArrayList<Long>>(); // used to hold the hashed file
@@ -266,7 +266,7 @@ public class Winnowing{
 		-- This is a helper method run datasets such as emacs, gcc etc
 	*/
 	private static void runOtherDataSets() throws Exception{
-		System.out.println("Running winnowing " + directory);
+		System.out.println("Running winnowing equals " + directory);
 		ReadFile.readFile(directory,fileList); // read the two files
 		System.out.println(fileList.get(0) + " " + fileList.get(1));
 		preliminaryStep(directory);
@@ -364,7 +364,7 @@ public class Winnowing{
 			}
 			// else we have a valid prev boundary and compare that value with the new one we slided in (aka current)
 			// if the new one is less than OR equal (AKA its not greater than the prevBoundary) to the prevBoundary, this new one will become the previous boundary
-			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) > 0)){
+			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) >= 0)){
 				prevBoundary = current;
 				match = true;
 			}
@@ -554,7 +554,7 @@ public class Winnowing{
 			}
 			// else we have a valid prev boundary and compare that value with the new one we slided in (aka current)
 			// if the new one is less than OR equal (AKA its not greater than the prevBoundary) to the prevBoundary, this new one will become the previous boundary
-			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) > 0)){
+			else if (!(md5Hashes.get(current).compareTo(md5Hashes.get(prevBoundary)) >= 0)){
 				prevBoundary = current;
 				match = true;
 			}
