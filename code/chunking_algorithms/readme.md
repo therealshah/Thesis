@@ -6,4 +6,4 @@ This section has all of the chunking algorithms. We implemented/experimented wit
 	
 	1. Regular (Here expected two different versions)
 	2. Morph Dataset (Data generated randomly)
-	3. Archive (Dataset from Internet Archive)
+	3. Archive (Dataset from Internet Archive)d

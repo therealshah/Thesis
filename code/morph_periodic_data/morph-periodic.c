@@ -16,16 +16,9 @@
 /* Program for binomial file morphing     */
 /*                                        */
 /*   This program creates a morph of two  */
-/*   files by a random process. Length of */ 
-/*   output file is the minimum length of */
-/*   the input files. Use 1 as default    */
-/*   for skip, or other values for        */
-/*   additional random experiments. The   */
-/*   program moves between 2 states, 0    */
-/*   and 1, according to Markov process.  */
-/*   Whenever in state 0, a character is  */
-/*   taken from first file, otherwise, a  */
-/*   character is taken from second file. */
+/*   periodic files by a random process. 
+/*   This is very similar to the original */  
+/*   morph code with subtle differences.   */ 
 /*                                        */
 /* Command line arguments:                */
 /*                                        */
